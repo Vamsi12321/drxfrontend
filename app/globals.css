@@ -1,0 +1,183 @@
+@import "tailwindcss";
+
+/* Animation for visit tab switching */
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateX(8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Global cursor rules — all interactive elements show pointer */
+a,
+button,
+[role="button"],
+input[type="submit"],
+input[type="button"],
+input[type="reset"],
+select,
+label[for],
+.cursor-pointer {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+.cursor-not-allowed {
+  cursor: not-allowed;
+}
+
+.card-professional {
+  background: white;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.card-professional:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15);
+  border-color: #c7d2fe;
+}
+
+.section-bg {
+  background: #f9fafb;
+}
+
+/* Login/Logout Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Landing Page Animations */
+.animate-delay-100 { animation-delay: 100ms; }
+.animate-delay-200 { animation-delay: 200ms; }
+.animate-delay-300 { animation-delay: 300ms; }
+.animate-delay-400 { animation-delay: 400ms; }
+.animate-delay-500 { animation-delay: 500ms; }
+.animate-delay-600 { animation-delay: 600ms; }
+.animate-delay-700 { animation-delay: 700ms; }
+
+.gradient-text {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.ai-glow {
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.3), 0 0 60px rgba(139, 92, 246, 0.1);
+}
+
+.ai-glow-sm {
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.2), 0 0 30px rgba(139, 92, 246, 0.05);
+}
+
+.shimmer-bg {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.mesh-gradient {
+  background: 
+    radial-gradient(at 40% 20%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, rgba(139, 92, 246, 0.06) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, rgba(236, 72, 153, 0.04) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, rgba(99, 102, 241, 0.04) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(139, 92, 246, 0.06) 0px, transparent 50%);
+}
+
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scroll-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Custom Scrollbar for SFE and Admin scrollable elements */
+.scrollbar-sfe::-webkit-scrollbar {
+  height: 4px; /* Height of horizontal scrollbar */
+  width: 4px;  /* Width of vertical scrollbar */
+}
+.scrollbar-sfe::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-sfe::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* slate-300 */
+  border-radius: 9999px;
+}
+.scrollbar-sfe::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; /* slate-400 */
+}
+/* Firefox support */
+.scrollbar-sfe {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+
+/* Typing placeholder animation */
+.typing-placeholder::after {
+  content: "";
+  animation: typingPlaceholder 8s infinite;
+  color: #9ca3af;
+}
+
+.typing-placeholder::before {
+  content: "|";
+  animation: blink 1s infinite;
+  color: #6366f1;
+  font-weight: bold;
+  margin-left: 1px;
+  position: absolute;
+  right: -2px;
+}
+
+@keyframes typingPlaceholder {
+  0%, 100% { content: "Search for drugs, indications, dosage..."; }
+  25% { content: "Search by symptoms..."; }
+  50% { content: "Search by drug class..."; }
+  75% { content: "Search by manufacturer..."; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Hide scrollbar but allow scrolling */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
