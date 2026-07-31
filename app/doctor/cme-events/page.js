@@ -1,5 +1,6 @@
 ﻿"use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { get, post as apiPost, del } from "@/lib/api";
 import { formatISTDate } from "@/lib/time";
@@ -7,6 +8,7 @@ import Image from "next/image";
 
 export default function DoctorCMEEvents() {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("all");
   const [confirmEvent, setConfirmEvent] = useState(null);
   const [successMsg, setSuccessMsg] = useState("");
@@ -34,9 +36,10 @@ export default function DoctorCMEEvents() {
   });
 
   const { data: regsData } = useQuery({
-    queryKey: ["my-registrations"],
-    queryFn: () => get("/api/v1/cme/my-cme?limit=100").then((d) => d.registrations || []),
-    staleTime: 60000,
+    queryKey: ["my-registrations", orgId],
+    queryFn: () => get(`/api/v1/cme/organizations/${orgId}/my-registrations`).then((d) => d.registrations || []),
+    staleTime: 0,
+    enabled: !!orgId,
   });
 
   // CME Bookmarks
@@ -75,25 +78,40 @@ export default function DoctorCMEEvents() {
   };
 
   const allFetched = upcomingData || [];
+
+  // Helper: check if event is happening today
+  const isToday = (dateStr) => {
+    if (!dateStr) return false;
+    const eventDate = new Date(dateStr).toDateString();
+    const today = new Date().toDateString();
+    return eventDate === today;
+  };
+
   const upcoming = allFetched.filter((e) => e.status === "upcoming" || e.status === "UPCOMING");
+  const ongoing = allFetched.filter((e) => e.status === "ongoing" || e.status === "ONGOING" || (isToday(e.event_date) && e.event_mode === "online" && e.meeting_link));
   const completed = allFetched.filter((e) => e.status === "completed" || e.status === "COMPLETED");
   const allEvents = allFetched;
   const myRegs = regsData || [];
-  const regMap = Object.fromEntries(myRegs.map((r) => [r.event_id || r.cme_id, r]));
-  const invalidateRegs = () => queryClient.invalidateQueries({ queryKey: ["my-registrations"] });
+  // Registration response has `cme_id` which maps to event `id`
+  const regMap = Object.fromEntries(myRegs.map((r) => [r.cme_id || r.event_id || r.id, r]));
+  const invalidateRegs = () => {
+    queryClient.invalidateQueries({ queryKey: ["my-registrations", orgId] });
+    queryClient.invalidateQueries({ queryKey: ["cme-upcoming"] });
+  };
 
   const registerMutation = useMutation({
-    mutationFn: (event) => apiPost(`/api/v1/cme/organizations/${orgId}/register`, { event_id: event._id || event.id || "", event_title: event.title || "", event_date: event.event_date || "" }),
+    mutationFn: (event) => apiPost(`/api/v1/cme/organizations/${orgId}/register`, { event_id: event.id || event._id }),
     onSuccess: () => {
       invalidateRegs();
+      queryClient.refetchQueries({ queryKey: ["my-registrations", orgId] });
       setConfirmEvent(null);
       setSuccessMsg("Successfully registered!");
       setTimeout(() => setSuccessMsg(""), 3000);
     },
   });
 
-  const activeRegs = myRegs.filter((r) => r.registration_status === "registered").length;
-  const liveNowCount = upcoming.filter((e) => e.event_mode === "online" && e.meeting_link).length;
+  const activeRegs = myRegs.filter((r) => r.registration_status === "registered" || r.registration_status === "REGISTERED").length;
+  const liveNowCount = ongoing.length;
   const creditsEarned = completed.length * 2;
   const totalCredits = 30;
   const progressPercent = Math.min(Math.round((creditsEarned / totalCredits) * 100), 100);
@@ -101,7 +119,7 @@ export default function DoctorCMEEvents() {
   const getFilteredEvents = () => {
     switch (activeTab) {
       case "upcoming": return upcoming;
-      case "live": return upcoming.filter((e) => e.event_mode === "online" && e.meeting_link);
+      case "live": return ongoing;
       case "ondemand": return completed.filter((e) => e.event_recording);
       case "completed": return completed;
       default: return allEvents;
@@ -112,8 +130,10 @@ export default function DoctorCMEEvents() {
   const isLoading = loadingUpcoming || loadingCompleted;
 
   const getEventStatus = (event) => {
-    if (event.status === "completed" || event.event_recording) return "ON DEMAND";
-    if (event.event_mode === "online" && event.meeting_link) return "LIVE NOW";
+    if (event.status === "completed" || event.status === "COMPLETED") return "COMPLETED";
+    if (event.status === "ongoing" || event.status === "ONGOING") return "LIVE NOW";
+    if (isToday(event.event_date) && event.event_mode === "online" && event.meeting_link) return "LIVE NOW";
+    if (event.event_recording) return "ON DEMAND";
     return "UPCOMING";
   };
 
@@ -121,6 +141,7 @@ export default function DoctorCMEEvents() {
     switch (status) {
       case "LIVE NOW": return "bg-red-500 text-white";
       case "ON DEMAND": return "bg-orange-500 text-white";
+      case "COMPLETED": return "bg-gray-500 text-white";
       default: return "bg-purple-600 text-white";
     }
   };
@@ -251,7 +272,7 @@ export default function DoctorCMEEvents() {
                 const statusBadge = getStatusBadge(status);
                 const cardGradient = getCardGradient(status);
                 const reg = regMap[event.id || event._id];
-                const isRegistered = reg?.status === "REGISTERED" || reg?.registration_status === "registered";
+                const isRegistered = !!reg;
 
                 let actionLabel = "Register";
                 let actionColor = "bg-white text-purple-600 border-2 border-purple-600 hover:bg-purple-50";
@@ -269,7 +290,12 @@ export default function DoctorCMEEvents() {
                 return (
                   <div key={event.id || event._id} className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition-all flex flex-col sm:flex-row">
                     {/* Left image/thumbnail area */}
-                    <div className={`w-full sm:w-36 h-24 sm:h-auto flex-shrink-0 bg-gradient-to-br ${cardGradient} relative flex items-center justify-center p-4`}>
+                    <div
+                      onClick={() => {
+                        sessionStorage.setItem("selectedCMEEvent", JSON.stringify(event));
+                        router.push(`/doctor/cme-events/${event.id || event._id}`);
+                      }}
+                      className={`w-full sm:w-36 h-24 sm:h-auto flex-shrink-0 bg-gradient-to-br ${cardGradient} relative flex items-center justify-center p-4 cursor-pointer`}>
                       <span className={`absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${statusBadge}`}>
                         {status}
                       </span>
@@ -277,7 +303,12 @@ export default function DoctorCMEEvents() {
                     </div>
 
                     {/* Content area */}
-                    <div className="flex-1 p-4 sm:p-5 flex flex-col justify-between min-w-0">
+                    <div
+                      onClick={() => {
+                        sessionStorage.setItem("selectedCMEEvent", JSON.stringify(event));
+                        router.push(`/doctor/cme-events/${event.id || event._id}`);
+                      }}
+                      className="flex-1 p-4 sm:p-5 flex flex-col justify-between min-w-0 cursor-pointer">
                       <div>
                         <h3 className="text-lg font-bold text-gray-900 mb-1 line-clamp-1">{event.title}</h3>
                         <p className="text-gray-500 text-sm mb-2">
@@ -329,7 +360,18 @@ export default function DoctorCMEEvents() {
                     {/* Right action column */}
                     <div className="flex sm:flex-col items-center justify-between sm:justify-center gap-3 px-4 sm:px-5 py-3 sm:py-0 border-t sm:border-t-0 sm:border-l border-gray-50">
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          sessionStorage.setItem("selectedCMEEvent", JSON.stringify(event));
+                          router.push(`/doctor/cme-events/${event.id || event._id}`);
+                        }}
+                        className="px-4 py-1.5 rounded-lg text-xs font-semibold text-[#5b2bce] border border-indigo-200 hover:bg-indigo-50 transition-all whitespace-nowrap"
+                      >
+                        View Details
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
                           if (actionLabel === "Register") setConfirmEvent(event);
                           else if (actionLabel === "Join Live" && event.meeting_link) window.open(event.meeting_link, "_blank");
                           else if (actionLabel === "Watch Now" && event.event_recording) window.open(event.event_recording, "_blank");

@@ -46,6 +46,16 @@ export default function DoctorHome() {
     placeholderData: (prev) => prev,
   });
 
+  // Fetch recent drugs from org
+  const { data: drugsData } = useQuery({
+    queryKey: ["org-drugs-recent", selectedOrgId],
+    queryFn: () => get(`/api/v1/organizations/${selectedOrgId}/drugs?limit=3`),
+    staleTime: 3 * 60 * 1000,
+    enabled: !!selectedOrgId,
+  });
+
+  const recentDrugs = drugsData?.drugs || [];
+
   const organizations = data?.organizations || { connected: 0, list: [] };
   const activitySummary = data?.activity_summary || { unread_notifications: 0 };
   const suggestedDoctors = data?.suggested_doctors || [];
@@ -168,6 +178,36 @@ export default function DoctorHome() {
               ))
             )}
           </div>
+
+          {/* Recent Drugs */}
+          {recentDrugs.length > 0 && (
+            <div className="mt-4">
+              <p className="text-xs font-bold text-[#3b3a8a] mb-2">Recently Added Drugs</p>
+              <div className="space-y-2">
+                {recentDrugs.slice(0, 3).map((drug) => (
+                  <div
+                    key={drug.id}
+                    onClick={() => {
+                      sessionStorage.setItem("selectedDrugData", JSON.stringify(drug));
+                      router.push(`/doctor/drug-details/${drug.id}`);
+                    }}
+                    className="flex items-center gap-3 p-2.5 rounded-xl border border-gray-50 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all cursor-pointer group"
+                  >
+                    <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm">💊</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-900 truncate group-hover:text-[#5b2bce]">{drug.drug_name}</p>
+                      <p className="text-[10px] text-gray-400 truncate">{drug.brand_name || drug.generic_name || ""}</p>
+                    </div>
+                    <svg className="w-3.5 h-3.5 text-gray-300 group-hover:text-indigo-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Explore link */}
           <Link

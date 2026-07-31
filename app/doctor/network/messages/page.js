@@ -174,7 +174,7 @@ function ConversationPanel({ convId, otherUser, currentUserId, accentColor, onBa
           </div>
         ) : messages.map((m) => {
           const isOwn = m.sender_id === currentUserId;
-          const isShared = m.message_type === "shared_post";
+          const isShared = m.message_type === "shared_post" || (m.content && m.content.includes("Shared a post by") && m.content.includes("[Post ID:"));
           const sharedData = isShared ? (m.shared_post || null) : null;
           // Debug: log message structure once
 
@@ -185,14 +185,29 @@ function ConversationPanel({ convId, otherUser, currentUserId, accentColor, onBa
                   <SharedPostBubble data={sharedData} personalMessage={m.content} isOwn={isOwn} isIndigo={isIndigo} />
                 ) : isShared ? (
                   /* Fallback: shared post but no structured data — show as card with content */
-                  <div className={`rounded-2xl overflow-hidden border ${isOwn ? (isIndigo ? "border-indigo-300" : "border-orange-300") : "border-gray-200"}`}>
-                    <div className={`px-3 py-2 text-xs font-semibold flex items-center gap-1 ${isOwn ? (isIndigo ? "bg-indigo-600 text-white" : "bg-orange-600 text-white") : "bg-gray-100 text-gray-600"}`}>
-                      <Icons.share /> Shared a post
-                    </div>
-                    <div className="bg-white px-3 py-2">
-                      <p className="text-sm text-gray-800 whitespace-pre-wrap">{m.content}</p>
-                    </div>
-                  </div>
+                  (() => {
+                    // Clean up content: remove "Shared a post by X:" prefix and "[Post ID: ...]" suffix
+                    let cleanContent = (m.content || "");
+                    const authorMatch = cleanContent.match(/^Shared a post by ([^:]+):\s*/);
+                    const authorName = authorMatch ? authorMatch[1] : "";
+                    if (authorMatch) cleanContent = cleanContent.replace(authorMatch[0], "");
+                    cleanContent = cleanContent.replace(/\s*\[Post ID:\s*[^\]]*\]/g, "").trim();
+                    // Remove surrounding quotes if present
+                    if (cleanContent.startsWith('"') && cleanContent.endsWith('"')) {
+                      cleanContent = cleanContent.slice(1, -1);
+                    }
+                    return (
+                      <div className={`rounded-2xl overflow-hidden border ${isOwn ? (isIndigo ? "border-indigo-300" : "border-orange-300") : "border-gray-200"}`}>
+                        <div className={`px-3 py-2 text-xs font-semibold flex items-center gap-1 ${isOwn ? (isIndigo ? "bg-indigo-600 text-white" : "bg-orange-600 text-white") : "bg-gray-100 text-gray-600"}`}>
+                          <Icons.share /> Shared a post
+                        </div>
+                        <div className="bg-white px-3 py-3 space-y-1.5">
+                          {authorName && <p className="text-xs font-bold text-gray-700">{authorName}</p>}
+                          <p className="text-sm text-gray-800">{cleanContent || "Shared a post"}</p>
+                        </div>
+                      </div>
+                    );
+                  })()
                 ) : (
                   <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${isOwn ? (isIndigo ? "bg-indigo-600 text-white rounded-br-sm" : "bg-orange-600 text-white rounded-br-sm") : "bg-gray-100 text-gray-800 rounded-bl-sm"}`}>
                     {m.content}

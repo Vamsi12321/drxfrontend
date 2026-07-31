@@ -70,7 +70,7 @@ function MyPostCard({ post, currentUserId, accentColor = "indigo", onDeleted }) 
   const accent = accentColor;
 
   const deleteMutation = useMutation({
-    mutationFn: () => del(`/api/v1/network/posts/${post.post_id}`),
+    mutationFn: () => del(`/api/v1/network/posts/${post.post_id || post.id || post._id}`),
     onSuccess: () => { onDeleted(); showToast("Post deleted."); },
     onError: (e) => showToast(e.message || "Failed to delete post", "error"),
   });

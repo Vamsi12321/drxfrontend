@@ -133,7 +133,7 @@ function FeedPageInner() {
         ) : (
           <>
             {posts.map((p) => (
-              <PostCard key={p.post_id} post={p} currentUserId={userId} highlight={highlightPostId === p.post_id} />
+              <PostCard key={p.post_id || p.id || p._id} post={p} currentUserId={userId} highlight={highlightPostId === (p.post_id || p.id || p._id)} />
             ))}
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-3 mt-4">
@@ -248,8 +248,10 @@ function FeedPageInner() {
 
 export function PostCard({ post: postData, currentUserId, highlight = false }) {
   const queryClient = useQueryClient();
-  const [liked, setLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(postData.likes_count || 0);
+  const postId = postData.post_id || postData.id || postData._id;
+  // Initialize liked state from post data
+  const [liked, setLiked] = useState(postData.is_liked || postData.liked || false);
+  const [likesCount, setLikesCount] = useState(postData.likes_count || postData.like_count || 0);
   const [showComments, setShowComments] = useState(false);
   const [commentsCount, setCommentsCount] = useState(postData.comments_count || 0);
   const [showShare, setShowShare] = useState(false);
@@ -261,10 +263,10 @@ export function PostCard({ post: postData, currentUserId, highlight = false }) {
   useEffect(() => {
     const cached = queryClient.getQueryData(["bookmarks-posts"]);
     if (cached?.bookmarks) {
-      const found = cached.bookmarks.find((b) => b.post_id === postData.post_id);
+      const found = cached.bookmarks.find((b) => b.post_id === postId);
       if (found) { setIsBookmarked(true); setBookmarkId(found.id); }
     }
-  }, [postData.post_id, queryClient]);
+  }, [postId, queryClient]);
 
   useEffect(() => {
     if (highlight && cardRef.current) {
@@ -273,13 +275,41 @@ export function PostCard({ post: postData, currentUserId, highlight = false }) {
   }, [highlight]);
 
   const likeMutation = useMutation({
-    mutationFn: () => apiPost("/api/v1/network/posts/" + postData.post_id + "/like", {}),
-    onSuccess: (res) => { setLiked(res.liked); setLikesCount(res.likes_count); },
+    mutationFn: () => {
+      if (liked) {
+        // Try unlike
+        return del("/api/v1/network/posts/" + postId + "/like").catch((err) => {
+          // If unlike endpoint doesn't exist, just ignore
+          if (err.status === 404 || err.status === 405) return { unliked: true };
+          throw err;
+        });
+      }
+      return apiPost("/api/v1/network/posts/" + postId + "/like", {});
+    },
+    onSuccess: (res) => {
+      if (liked) {
+        // Unliked
+        setLiked(false);
+        setLikesCount((c) => Math.max(0, c - 1));
+      } else {
+        // Liked
+        const newCount = res.likes_count ?? res.like_count ?? likesCount + 1;
+        setLiked(true);
+        setLikesCount(newCount);
+      }
+    },
+    onError: (err) => {
+      // If "already liked" — just mark as liked, don't show error
+      const msg = (err.message || "").toLowerCase();
+      if (msg.includes("already liked") || msg.includes("already")) {
+        setLiked(true);
+      }
+    },
   });
 
   const addBookmarkMutation = useMutation({
     mutationFn: () => apiPost("/api/v1/bookmarks/posts", {
-      post_id: postData.post_id || postData.id || postData._id,
+      post_id: postId,
       post_author_name: postData.author_name || "",
       post_content_preview: (postData.content || "").slice(0, 100),
     }),
@@ -351,8 +381,8 @@ export function PostCard({ post: postData, currentUserId, highlight = false }) {
         {/* Engagement row */}
         <div className="flex items-center justify-between py-2.5 border-t border-gray-100 text-sm text-gray-500">
           <div className="flex items-center gap-4">
-            <button onClick={() => likeMutation.mutate()}
-              className={"flex items-center gap-1.5 font-medium transition-all " + (liked ? "text-blue-600" : "text-gray-500 hover:text-blue-600")}>
+            <button onClick={() => likeMutation.mutate()} disabled={likeMutation.isPending}
+              className={"flex items-center gap-1.5 font-medium transition-all disabled:opacity-50 " + (liked ? "text-blue-600" : "text-gray-500 hover:text-blue-600")}>
               <svg className="w-4.5 h-4.5" fill={liked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
               {likesCount}
             </button>
@@ -378,7 +408,7 @@ export function PostCard({ post: postData, currentUserId, highlight = false }) {
 
       {showComments && (
         <div className="border-t border-gray-100 px-5 pb-4 pt-3">
-          <CommentsSection postId={postData.post_id} currentUserId={currentUserId} onCountChange={setCommentsCount} />
+          <CommentsSection postId={postData.post_id || postData.id || postData._id} currentUserId={currentUserId} onCountChange={setCommentsCount} />
         </div>
       )}
       {showShare && (
@@ -395,13 +425,19 @@ export function CommentsSection({ postId, currentUserId, onCountChange }) {
   const { data, isLoading } = useQuery({
     queryKey: ["comments", postId],
     queryFn: () => get("/api/v1/network/posts/" + postId + "/comments?limit=50&sort=asc"),
-    staleTime: 30000,
+    staleTime: 0,
   });
   const comments = data?.comments || [];
 
+  // Update parent count whenever comments data changes
+  useEffect(() => {
+    if (data) {
+      onCountChange(data.total ?? comments.length);
+    }
+  }, [data, comments.length]);
+
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["comments", postId] });
-    if (data?.total !== undefined) onCountChange(data.total);
   };
 
   const addMutation = useMutation({
@@ -507,7 +543,7 @@ export function SharePostModal({ post, onClose }) {
 
   const { data: connData, isLoading } = useQuery({
     queryKey: ["my-connections"],
-    queryFn: () => get("/api/v1/network/connections?limit=50"),
+    queryFn: () => get("/api/v1/connections?limit=50"),
     staleTime: 30000,
   });
   const connections = connData?.connections || [];
@@ -517,10 +553,16 @@ export function SharePostModal({ post, onClose }) {
   );
 
   const shareMutation = useMutation({
-    mutationFn: () => apiPost("/api/v1/network/posts/" + post.post_id + "/share", {
-      user_ids: selected,
-      message: message.trim() || undefined,
-    }),
+    mutationFn: async () => {
+      const postId = post.post_id || post.id || post._id;
+      // Call share-to-chat for each selected recipient
+      const results = await Promise.all(
+        selected.map((uid) =>
+          apiPost(`/api/v1/network/posts/${postId}/share-to-chat`, { recipient_id: uid })
+        )
+      );
+      return { message: "Post shared via chat", shared_to: results.length };
+    },
     onSuccess: (data) => {
       setResult(data);
       queryClient.invalidateQueries({ queryKey: ["conversations"] });

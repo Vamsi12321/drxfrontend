@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { logout } from "@/lib/auth";
+import { get } from "@/lib/api";
 
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", href: "/doctor/home" },
@@ -49,10 +50,23 @@ export default function DoctorLayout({ children }) {
   const [globalSearch, setGlobalSearch] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [navigating, setNavigating] = useState("");
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     setUserName(localStorage.getItem("userName") || "Doctor");
     setCompanyName(localStorage.getItem("companyName") || "");
+  }, [pathname]);
+
+  // Fetch unread notification count
+  useEffect(() => {
+    if (pathname === "/doctor/select-org") return;
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+    get("/api/v1/dashboard/me")
+      .then((data) => {
+        setUnreadCount(data?.activity_summary?.unread_notifications || 0);
+      })
+      .catch(() => {});
   }, [pathname]);
 
   // Fetch real orgs for dropdown
@@ -282,7 +296,11 @@ export default function DoctorLayout({ children }) {
               <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
                 <svg width="16" height="16" fill="#5b2bce" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
               </div>
-              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-[8px] text-white font-bold flex items-center justify-center border border-white">3</span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-[8px] text-white font-bold flex items-center justify-center border border-white">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
             </div>
             {/* Profile avatar */}
             <div className="flex items-center gap-2 cursor-pointer">

@@ -18,10 +18,11 @@ export default function DoctorDrugSearch() {
   const orgId = typeof window !== "undefined" ? localStorage.getItem("selectedOrgId") : null;
 
   const { data, isLoading, error: fetchError } = useQuery({
-    queryKey: ["drugs-public", orgId],
+    queryKey: ["drugs-public", orgId, search],
     queryFn: () => {
       if (!orgId) return [];
-      return get(`/api/v1/organizations/${orgId}/drugs?limit=200`).then((d) => d.drugs || []);
+      const params = search.trim() ? `?search=${encodeURIComponent(search.trim())}&limit=200` : "?limit=200";
+      return get(`/api/v1/organizations/${orgId}/drugs${params}`).then((d) => d.drugs || []);
     },
     staleTime: 5 * 60 * 1000,
     enabled: !!orgId,

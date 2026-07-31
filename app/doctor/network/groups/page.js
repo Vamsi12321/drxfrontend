@@ -236,7 +236,7 @@ function GroupInfoPanel({ groupId, currentUserId, youLeftAt, onClose, onDeleted,
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["group-details", groupId],
-    queryFn: () => get(`/api/v1/network/groups/${groupId}`),
+    queryFn: () => get(`/api/v1/groups/${groupId}`),
     staleTime: 10000,
   });
 
@@ -246,43 +246,43 @@ function GroupInfoPanel({ groupId, currentUserId, youLeftAt, onClose, onDeleted,
   const isCreator = group.created_by === currentUserId;
 
   const updateMutation = useMutation({
-    mutationFn: () => put(`/api/v1/network/groups/${groupId}`, { group_name: editName, group_description: editDesc }),
+    mutationFn: () => put(`/api/v1/groups/${groupId}`, { group_name: editName, group_description: editDesc }),
     onSuccess: () => { refetch(); onRefreshList(); setEditing(false); showToast("Group updated."); },
     onError: (e) => showToast(e.message || "Failed to update", "error"),
   });
 
   const removeMemberMutation = useMutation({
-    mutationFn: (uid) => del(`/api/v1/network/groups/${groupId}/members/${uid}`),
+    mutationFn: (uid) => del(`/api/v1/groups/${groupId}/members/${uid}`),
     onSuccess: () => { refetch(); onRefreshList(); showToast("Member removed."); },
     onError: (e) => showToast(e.message || "Failed to remove member", "error"),
   });
 
   const makeAdminMutation = useMutation({
-    mutationFn: (uid) => apiPost(`/api/v1/network/groups/${groupId}/admins/${uid}`, {}),
+    mutationFn: (uid) => apiPost(`/api/v1/groups/${groupId}/admins/${uid}`, {}),
     onSuccess: () => { refetch(); showToast("Admin role granted."); },
     onError: (e) => showToast(e.message || "Failed", "error"),
   });
 
   const removeAdminMutation = useMutation({
-    mutationFn: (uid) => del(`/api/v1/network/groups/${groupId}/admins/${uid}`),
+    mutationFn: (uid) => del(`/api/v1/groups/${groupId}/admins/${uid}`),
     onSuccess: () => { refetch(); showToast("Admin role removed."); },
     onError: (e) => showToast(e.message || "Failed", "error"),
   });
 
   const leaveMutation = useMutation({
-    mutationFn: () => apiPost(`/api/v1/network/groups/${groupId}/leave`, {}),
+    mutationFn: () => apiPost(`/api/v1/groups/${groupId}/leave`, {}),
     onSuccess: () => { onRefreshList(); onClose(); showToast("You left the group."); },
     onError: (e) => showToast(e.message || "Failed to leave", "error"),
   });
 
   const clearChatMutation = useMutation({
-    mutationFn: () => del(`/api/v1/network/groups/${groupId}/clear-chat`),
+    mutationFn: () => del(`/api/v1/groups/${groupId}/clear-chat`),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["my-groups"] }); onDeleted(); onClose(); showToast("Chat cleared."); },
     onError: (e) => showToast(e.message || "Failed", "error"),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => del(`/api/v1/network/groups/${groupId}`),
+    mutationFn: () => del(`/api/v1/groups/${groupId}`),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["my-groups"] }); onDeleted(); onClose(); showToast("Group deleted."); },
     onError: (e) => showToast(e.message || "Failed to delete", "error"),
   });
@@ -423,7 +423,7 @@ function CreateGroupModal({ onClose, onCreated }) {
 
   const { data: connData } = useQuery({
     queryKey: ["my-connections"],
-    queryFn: () => get("/api/v1/network/connections?limit=50"),
+    queryFn: () => get("/api/v1/connections?limit=50"),
     staleTime: 30000,
   });
   const connections = connData?.connections || [];
@@ -431,7 +431,7 @@ function CreateGroupModal({ onClose, onCreated }) {
   const toggle = (uid) => setSelected((p) => p.includes(uid) ? p.filter((id) => id !== uid) : p.length < 49 ? [...p, uid] : p);
 
   const mutation = useMutation({
-    mutationFn: () => apiPost("/api/v1/network/groups", { group_name: name, group_description: desc || undefined, member_ids: selected }),
+    mutationFn: () => apiPost("/api/v1/groups", { group_name: name, group_description: desc || undefined, member_ids: selected }),
     onSuccess: (data) => onCreated(data.group_id),
     onError: (err) => setError(err.message || "Failed to create group"),
   });
@@ -491,15 +491,15 @@ function AddMembersModal({ groupId, currentMembers, onClose, onAdded }) {
 
   const { data: connData } = useQuery({
     queryKey: ["my-connections"],
-    queryFn: () => get("/api/v1/network/connections?limit=50"),
+    queryFn: () => get("/api/v1/connections?limit=50"),
     staleTime: 30000,
   });
 
-  const available = (connData?.connections || []).filter((c) => !currentMembers.includes(c.user_id));
+  const available = (connData?.connections || []).filter((c) => !currentMembers.some((m) => m.user_id === c.user_id || m === c.user_id));
   const toggle = (uid) => setSelected((p) => p.includes(uid) ? p.filter((id) => id !== uid) : p.length < 10 ? [...p, uid] : p);
 
   const mutation = useMutation({
-    mutationFn: () => apiPost(`/api/v1/network/groups/${groupId}/members`, { user_ids: selected }),
+    mutationFn: () => apiPost(`/api/v1/groups/${groupId}/members`, { user_ids: selected }),
     onSuccess: onAdded,
   });
 
