@@ -35,7 +35,11 @@ export default function VirtualMRPage() {
   });
 
   const drugs = drugsData || [];
-  const selectedDrug = drugs.find((d) => d._id === selectedDrugId);
+  const selectedDrug = drugs.find((d) => (d.id || d._id) === selectedDrugId);
+  // Debug — remove after confirming
+  if (drugs.length > 0 && !drugs[0].id && !drugs[0]._id) {
+    console.warn("[VirtualMR] Drug list has no id field. Keys:", Object.keys(drugs[0]));
+  }
   const filteredDrugs = drugs.filter((d) => {
     if (!drugSearch.trim()) return true;
     const q = drugSearch.toLowerCase();
@@ -153,8 +157,8 @@ export default function VirtualMRPage() {
                   </div>
                   <div className="max-h-[200px] overflow-y-auto">
                     {filteredDrugs.map((d) => (
-                      <button key={d._id} onClick={() => { setSelectedDrugId(d._id); setShowDropdown(false); setDrugSearch(""); setChatMessages([]); }}
-                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-indigo-50 transition-colors ${selectedDrugId === d._id ? "bg-indigo-50" : ""}`}>
+                      <button key={d.id || d._id || d.drug_name} onClick={() => { setSelectedDrugId(d.id || d._id); setShowDropdown(false); setDrugSearch(""); setChatMessages([]); }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-indigo-50 transition-colors ${selectedDrugId === (d.id || d._id) ? "bg-indigo-50" : ""}`}>
                         <div className="w-6 h-6 bg-[#eef0f9] rounded overflow-hidden flex items-center justify-center flex-shrink-0">
                           <img src={FORM_ICONS[d.dosage_form] || "/images/icons/drug_icon.png"} alt="" className="w-[60px] h-[60px] object-cover object-center" />
                         </div>
@@ -187,7 +191,7 @@ export default function VirtualMRPage() {
                     </div>
                   </div>
                 </div>
-                <Link href={`/doctor/drug-details/${selectedDrug._id}`}>
+                <Link href={`/doctor/drug-details/${selectedDrug?.id || selectedDrug?._id || encodeURIComponent(selectedDrug?.drug_name || "")}`} onClick={() => { if (selectedDrug) sessionStorage.setItem("selectedDrugData", JSON.stringify(selectedDrug)); }}>
                   <button className="border border-[#5b2bce] text-[#5b2bce] px-3 py-1.5 rounded-lg text-[10px] font-bold hover:bg-indigo-50 transition-colors flex items-center gap-1">
                     View Full Product Info <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
                   </button>

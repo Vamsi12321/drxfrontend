@@ -66,7 +66,7 @@ export default function DrugDetailsPage() {
         const cached = sessionStorage.getItem("selectedDrugData");
         if (cached) {
           const d = JSON.parse(cached);
-          if (d.id === id || d._id === id) return d;
+          if (d.id === id || d._id === id || d.drug_name === decodeURIComponent(id)) return d;
         }
       } catch {}
       return undefined;
