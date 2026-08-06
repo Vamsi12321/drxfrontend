@@ -120,7 +120,6 @@ export default function DoctorCMEEvents() {
     switch (activeTab) {
       case "upcoming": return upcoming;
       case "live": return ongoing;
-      case "ondemand": return completed.filter((e) => e.event_recording);
       case "completed": return completed;
       default: return allEvents;
     }
@@ -158,7 +157,6 @@ export default function DoctorCMEEvents() {
     { id: "all", label: "All Events" },
     { id: "upcoming", label: "Upcoming" },
     { id: "live", label: "Live Now", dot: true },
-    { id: "ondemand", label: "On Demand" },
     { id: "completed", label: "Completed" },
   ];
 
@@ -243,13 +241,7 @@ export default function DoctorCMEEvents() {
               </button>
             ))}
             <div className="ml-auto flex items-center gap-2 pb-2 flex-shrink-0 hidden sm:flex">
-              <button className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 flex items-center gap-1 whitespace-nowrap">
-                All Categories <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-              </button>
-              <button className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 flex items-center gap-1.5">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
-                Filters
-              </button>
+              <span className="text-xs text-gray-400">{filteredEvents.length} events</span>
             </div>
           </div>
 
@@ -341,12 +333,19 @@ export default function DoctorCMEEvents() {
 
                         {/* Tags */}
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="bg-green-50 text-green-700 px-2.5 py-0.5 rounded-md text-xs font-semibold border border-green-100">
-                            2.0 CME Credits
-                          </span>
+                          {event.cme_credits && (
+                            <span className="bg-green-50 text-green-700 px-2.5 py-0.5 rounded-md text-xs font-semibold border border-green-100">
+                              {event.cme_credits} CME Credits
+                            </span>
+                          )}
                           <span className="bg-purple-50 text-purple-700 px-2.5 py-0.5 rounded-md text-xs font-semibold border border-purple-100">
-                            {event.event_mode === "online" ? "Live Webinar" : "In-Person"}
+                            {event.event_mode === "online" ? "Webinar" : event.event_mode === "offline" ? "In-Person" : event.event_mode || "Event"}
                           </span>
+                          {event.event_type && event.event_type !== event.event_mode && (
+                            <span className="bg-gray-50 text-gray-600 px-2.5 py-0.5 rounded-md text-xs font-semibold border border-gray-100">
+                              {event.event_type}
+                            </span>
+                          )}
                           {event.venue_name && (
                             <span className="text-gray-400 text-xs flex items-center gap-1">
                               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -461,25 +460,20 @@ export default function DoctorCMEEvents() {
           {/* Upcoming Live Sessions */}
           <div className="bg-white rounded-xl border border-gray-100 p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold" style={{ color: "#3b3a8a" }}>Upcoming Live Sessions</h3>
-              <button className="text-purple-600 text-xs font-semibold hover:underline">View Calendar</button>
+              <h3 className="text-sm font-bold" style={{ color: "#3b3a8a" }}>Upcoming Sessions</h3>
             </div>
             <div className="space-y-4">
-              {upcoming.slice(0, 3).map((event, idx) => (
-                <div key={event.id || event._id} className="flex items-start gap-3">
+              {upcoming.slice(0, 3).map((event) => (
+                <div key={event.id || event._id}
+                  className="flex items-start gap-3 cursor-pointer group"
+                  onClick={() => { sessionStorage.setItem("selectedCMEEvent", JSON.stringify(event)); router.push(`/doctor/cme-events/${event.id || event._id}`); }}>
                   <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
                     <Image src="/images/cme/cme_icon.png" alt="" width={30} height={30} className="object-contain" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] text-gray-400 mb-0.5">
-                      {idx === 0 ? "Today, " : idx === 1 ? "Tomorrow, " : ""}{event.event_time || "TBD"}
-                    </p>
-                    <p className="text-sm font-semibold text-gray-800 line-clamp-1">{event.title}</p>
+                    <p className="text-[11px] text-gray-400 mb-0.5">{formatISTDate(event.event_date)}{event.event_time ? ` • ${event.event_time}` : ""}</p>
+                    <p className="text-sm font-semibold text-gray-800 line-clamp-1 group-hover:text-purple-600 transition-colors">{event.title}</p>
                     <p className="text-xs text-gray-400">{event.speaker || "Speaker TBA"}</p>
-                  </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                    <span className="text-[10px] text-red-500 font-semibold">Live</span>
                   </div>
                 </div>
               ))}
@@ -487,39 +481,63 @@ export default function DoctorCMEEvents() {
                 <p className="text-xs text-gray-400 text-center py-4">No upcoming sessions</p>
               )}
             </div>
-            {upcoming.length > 0 && (
-              <button className="w-full mt-4 text-center text-xs text-purple-600 font-semibold border border-purple-100 rounded-lg py-2 hover:bg-purple-50">
-                View All Live Sessions
-              </button>
-            )}
           </div>
 
-          {/* Popular Topics */}
-          <div className="bg-white rounded-xl border border-gray-100 p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold" style={{ color: "#3b3a8a" }}>Popular Topics</h3>
-              <button className="text-purple-600 text-xs font-semibold hover:underline">View All</button>
-            </div>
-            <div className="grid grid-cols-2 gap-2.5">
-              {[
-                { name: "Cardiology", count: 28, color: "bg-red-500" },
-                { name: "Neurology", count: 22, color: "bg-purple-500" },
-                { name: "Endocrinology", count: 18, color: "bg-amber-500" },
-                { name: "Oncology", count: 16, color: "bg-green-500" },
-                { name: "Pulmonology", count: 14, color: "bg-blue-500" },
-              ].map((topic) => (
-                <div key={topic.name} className="flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${topic.color}`} />
-                  <span className="text-xs text-gray-700">{topic.name}</span>
-                  <span className="text-xs text-gray-400 font-bold ml-auto">{topic.count}</span>
+          {/* Event Types / Topics — dynamic from actual data */}
+          {(() => {
+            const types = [...new Set(allEvents.map((e) => e.event_type).filter(Boolean))];
+            const modes = [...new Set(allEvents.map((e) => e.event_mode).filter(Boolean))];
+            const speakers = [...new Set(allEvents.map((e) => e.speaker).filter(Boolean))];
+            if (types.length === 0 && modes.length === 0) return null;
+            return (
+              <div className="bg-white rounded-xl border border-gray-100 p-5">
+                <h3 className="text-sm font-bold mb-4" style={{ color: "#3b3a8a" }}>Event Summary</h3>
+                <div className="space-y-2.5 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Total Events</span>
+                    <span className="font-bold text-gray-800">{allEvents.length}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Upcoming</span>
+                    <span className="font-bold text-purple-600">{upcoming.length}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Live Now</span>
+                    <span className="font-bold text-red-500">{ongoing.length}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Completed</span>
+                    <span className="font-bold text-gray-500">{completed.length}</span>
+                  </div>
+                  {types.length > 0 && (
+                    <>
+                      <div className="border-t border-gray-100 pt-2 mt-2">
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Event Types</p>
+                        {types.map((t) => {
+                          const count = allEvents.filter((e) => e.event_type === t).length;
+                          return (
+                            <div key={t} className="flex items-center justify-between mb-1">
+                              <button onClick={() => setActiveTab("all")} className="text-gray-600 hover:text-purple-600 truncate text-left">{t}</button>
+                              <span className="text-gray-400 font-bold ml-2">{count}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+                  {speakers.length > 0 && (
+                    <div className="border-t border-gray-100 pt-2 mt-2">
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Speakers</p>
+                      {speakers.slice(0, 4).map((s) => (
+                        <p key={s} className="text-gray-600 truncate mb-1">🎤 {s}</p>
+                      ))}
+                      {speakers.length > 4 && <p className="text-gray-400">+{speakers.length - 4} more</p>}
+                    </div>
+                  )}
                 </div>
-              ))}
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 cursor-pointer hover:text-purple-600">More</span>
-                <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
               </div>
-            </div>
-          </div>
+            );
+          })()}
         </div>
       </div>
 

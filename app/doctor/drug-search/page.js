@@ -1,19 +1,28 @@
 ﻿"use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { get } from "@/lib/api";
-import { HiOutlineSearch, HiOutlineX, HiOutlineChevronDown, HiOutlineFilter } from "react-icons/hi";
+import { HiOutlineSearch, HiOutlineX, HiOutlineChevronDown } from "react-icons/hi";
 import { MdOutlineList, MdOutlineGridView } from "react-icons/md";
 
 const getVal = (drug, key) => { const v = drug?.field_values?.find((f) => f.key === key)?.value; if (Array.isArray(v)) return v.join(", "); return v || ""; };
+
+const unique = (arr) => [...new Set(arr.filter(Boolean))].sort();
 
 export default function DoctorDrugSearch() {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState("list");
-  const [sortBy, setSortBy] = useState("relevance");
-  const [selectedDrug, setSelectedDrug] = useState(null);
+  const [sortBy, setSortBy] = useState("az");
+  const [filterType, setFilterType] = useState("all");
+  const [filterForm, setFilterForm] = useState("all");
+  const [filterStrength, setFilterStrength] = useState("all");
+  const [filterBrand, setFilterBrand] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const [categorySearch, setCategorySearch] = useState("");
+  const dropdownRef = useRef(null);
 
   const orgId = typeof window !== "undefined" ? localStorage.getItem("selectedOrgId") : null;
 
@@ -31,25 +40,105 @@ export default function DoctorDrugSearch() {
 
   const drugs = data || [];
 
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClick = (e) => { if (!dropdownRef.current?.contains(e.target)) setOpenDropdown(null); };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  // Build filter options dynamically from actual data
+  const types = unique(drugs.map((d) => d.prescription_type || (d.prescription_required ? "Rx" : null)));
+  const forms = unique(drugs.map((d) => d.dosage_form || getVal(d, "dosage_form")));
+  const strengths = unique(drugs.map((d) => d.strength || getVal(d, "strength") || d.dosage_strength));
+  const brands = unique(drugs.map((d) => d.brand_name || getVal(d, "brand_name")));
+  const categories = unique(drugs.map((d) => d.therapeutic_category || d.drug_class || getVal(d, "therapeutic_category")));
+
+  // Apply filters
   const filtered = drugs.filter((drug) => {
-    if (!search.trim()) return true;
+    const name = (drug.drug_name || getVal(drug, "drug_name") || "").toLowerCase();
+    const brand = (drug.brand_name || getVal(drug, "brand_name") || "").toLowerCase();
+    const generic = (drug.generic_name || getVal(drug, "generic_name") || "").toLowerCase();
+    const category = (drug.therapeutic_category || drug.drug_class || getVal(drug, "therapeutic_category") || "").toLowerCase();
+    const drugForm = drug.dosage_form || getVal(drug, "dosage_form") || "";
+    const drugStrength = drug.strength || getVal(drug, "strength") || drug.dosage_strength || "";
+    const drugBrand = drug.brand_name || getVal(drug, "brand_name") || "";
+    const drugType = drug.prescription_type || (drug.prescription_required ? "Rx" : "OTC");
+    const drugCat = drug.therapeutic_category || drug.drug_class || getVal(drug, "therapeutic_category") || "";
+
     const q = search.toLowerCase();
-    const drugName = (drug.drug_name || getVal(drug, "drug_name") || "").toLowerCase();
-    const brandName = (drug.brand_name || getVal(drug, "brand_name") || "").toLowerCase();
-    const allText = drug.field_values?.map((fv) => Array.isArray(fv.value) ? fv.value.join(" ") : (fv.value || "")).join(" ").toLowerCase() || "";
-    return drugName.includes(q) || brandName.includes(q) || allText.includes(q);
+    const matchSearch = !q || name.includes(q) || brand.includes(q) || generic.includes(q) || category.includes(q);
+    const matchType = filterType === "all" || drugType === filterType;
+    const matchForm = filterForm === "all" || drugForm === filterForm;
+    const matchStrength = filterStrength === "all" || drugStrength === filterStrength;
+    const matchBrand = filterBrand === "all" || drugBrand === filterBrand;
+    const matchCategory = filterCategory === "all" || drugCat === filterCategory;
+
+    return matchSearch && matchType && matchForm && matchStrength && matchBrand && matchCategory;
+  }).sort((a, b) => {
+    if (sortBy === "az") return (a.drug_name || "").localeCompare(b.drug_name || "");
+    if (sortBy === "za") return (b.drug_name || "").localeCompare(a.drug_name || "");
+    return 0;
   });
 
-  // Navigate to drug details page
+  // Navigate to drug details
   if (typeof window !== "undefined") {
     window.__setSelectedDrug = (drug) => {
       sessionStorage.setItem("selectedDrugData", JSON.stringify(drug));
-      router.push(`/doctor/drug-details/${drug.id || drug._id || drug.drug_id || encodeURIComponent(drug.drug_name)}`);
+      router.push(`/doctor/drug-details/${drug.id || drug._id || encodeURIComponent(drug.drug_name)}`);
     };
   }
 
+  const activeFilterCount = [filterType, filterForm, filterStrength, filterBrand, filterCategory].filter((v) => v !== "all").length;
+
+  const clearAll = () => { setFilterType("all"); setFilterForm("all"); setFilterStrength("all"); setFilterBrand("all"); setFilterCategory("all"); };
+
+  const FilterDropdown = ({ label, value, onChange, options }) => {
+    const isOpen = openDropdown === label;
+    const isActive = value !== "all";
+    const [localSearch, setLocalSearch] = useState("");
+    const filtered = localSearch ? options.filter((o) => o.toLowerCase().includes(localSearch.toLowerCase())) : options;
+    return (
+      <div className="relative">
+        <button onClick={() => { setOpenDropdown(isOpen ? null : label); }}
+          className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-full text-xs font-medium transition-colors ${isActive ? "border-[#5b2bce] bg-indigo-50 text-[#5b2bce]" : "border-gray-200 text-gray-700 bg-white hover:border-gray-300"}`}>
+          {isActive ? (value.length > 12 ? value.slice(0, 12) + "…" : value) : label}
+          <HiOutlineChevronDown className={`w-3 h-3 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        </button>
+        {isOpen && (
+          <div className="absolute top-full left-0 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-xl z-30 w-52 py-1">
+            {/* Search inside dropdown */}
+            <div className="px-2 py-1.5 border-b border-gray-100">
+              <input
+                type="text"
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
+                placeholder="Search..."
+                autoFocus
+                className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg outline-none focus:ring-1 focus:ring-[#5b2bce]"
+              />
+            </div>
+            <div className="max-h-48 overflow-y-auto">
+              <button onClick={() => { onChange("all"); setOpenDropdown(null); setLocalSearch(""); }}
+                className={`w-full px-3 py-2 text-left text-xs transition-colors ${value === "all" ? "bg-indigo-50 text-[#5b2bce] font-semibold" : "text-gray-700 hover:bg-gray-50"}`}>
+                All
+              </button>
+              {filtered.length === 0 && <p className="px-3 py-2 text-xs text-gray-400">No matches</p>}
+              {filtered.map((opt) => (
+                <button key={opt} onClick={() => { onChange(opt); setOpenDropdown(null); setLocalSearch(""); }}
+                  className={`w-full px-3 py-2 text-left text-xs transition-colors ${value === opt ? "bg-indigo-50 text-[#5b2bce] font-semibold" : "text-gray-700 hover:bg-gray-50"}`}>
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" ref={dropdownRef}>
       {/* Page Header */}
       <div>
         <h1 className="text-xl font-bold text-gray-900">Drug Search</h1>
@@ -60,33 +149,25 @@ export default function DoctorDrugSearch() {
       <div className="flex items-center gap-2">
         <div className="flex-1 relative">
           <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Search for medicines, indications, dosage..."
-            className="w-full pl-12 pr-10 py-3.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition-all bg-white"
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-              <HiOutlineX className="w-4 h-4" />
-            </button>
-          )}
+            className="w-full pl-12 pr-10 py-3.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition-all bg-white" />
+          {search && <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"><HiOutlineX className="w-4 h-4" /></button>}
         </div>
-        <button className="bg-[#5b2bce] hover:bg-[#4318d1] text-white p-3.5 rounded-xl transition-colors shadow-sm">
-          <HiOutlineSearch className="w-5 h-5" />
-        </button>
       </div>
 
-      {/* Filter Chips */}
+      {/* Dynamic Filter Chips */}
       <div className="flex items-center gap-2 flex-wrap">
-        {["All Types", "All Forms", "All Strengths", "All Brands", "More Filters"].map((label) => (
-          <button key={label} className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-full text-xs font-medium text-gray-700 bg-white hover:border-gray-300 transition-colors">
-            {label}
-            <HiOutlineChevronDown className="w-3 h-3 text-gray-400" />
+        <FilterDropdown label="Type" value={filterType} onChange={setFilterType} options={types} />
+        <FilterDropdown label="Form" value={filterForm} onChange={setFilterForm} options={forms} />
+        <FilterDropdown label="Strength" value={filterStrength} onChange={setFilterStrength} options={strengths} />
+        <FilterDropdown label="Brand" value={filterBrand} onChange={setFilterBrand} options={brands} />
+        <FilterDropdown label="Category" value={filterCategory} onChange={setFilterCategory} options={categories} />
+        {activeFilterCount > 0 && (
+          <button onClick={clearAll} className="text-xs text-[#5b2bce] font-semibold hover:underline ml-1">
+            Clear All ({activeFilterCount})
           </button>
-        ))}
-        <button className="text-xs text-[#5b2bce] font-semibold hover:underline ml-1">Clear All</button>
+        )}
       </div>
 
       {/* Results + Sidebar Layout */}
@@ -97,15 +178,15 @@ export default function DoctorDrugSearch() {
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-gray-500">
               Found <span className="font-bold text-[#5b2bce]">{filtered.length}</span> results{search && <> for "<span className="font-semibold text-gray-700">{search}</span>"</>}
+              {activeFilterCount > 0 && <span className="text-xs text-gray-400 ml-1">({activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""} active)</span>}
             </p>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5 text-xs text-gray-500">
                 <span>Sort by:</span>
                 <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
                   className="border border-gray-200 rounded-lg px-2 py-1 text-xs font-medium bg-white outline-none">
-                  <option value="relevance">Relevance</option>
-                  <option value="name">Name</option>
-                  <option value="rating">Rating</option>
+                  <option value="az">A → Z</option>
+                  <option value="za">Z → A</option>
                 </select>
               </div>
               <div className="flex bg-gray-100 rounded-lg p-0.5">
@@ -155,46 +236,88 @@ export default function DoctorDrugSearch() {
             <h3 className="text-sm font-bold text-gray-900 mb-4">Refine Results</h3>
 
             {/* Drug Type */}
-            <div className="mb-4">
-              <p className="text-xs font-semibold text-gray-700 mb-2">Drug Type</p>
-              <div className="space-y-1.5">
-                {["All Types", "Prescription (Rx)", "OTC", "Herbal", "Vaccine"].map((type, idx) => (
-                  <label key={type} className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                    <input type="checkbox" defaultChecked={idx === 0} className="w-3.5 h-3.5 rounded border-gray-300 text-[#5b2bce] focus:ring-[#5b2bce]" />
-                    {type}
+            {types.length > 0 && (
+              <div className="mb-4">
+                <p className="text-xs font-semibold text-gray-700 mb-2">Type</p>
+                <div className="space-y-1.5">
+                  <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                    <input type="radio" name="type" checked={filterType === "all"} onChange={() => setFilterType("all")} className="w-3.5 h-3.5 text-[#5b2bce]" />
+                    All
                   </label>
-                ))}
+                  {types.map((t) => (
+                    <label key={t} className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                      <input type="radio" name="type" checked={filterType === t} onChange={() => setFilterType(t)} className="w-3.5 h-3.5 text-[#5b2bce]" />
+                      {t}
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Form */}
-            <div className="mb-4">
-              <p className="text-xs font-semibold text-gray-700 mb-2">Form</p>
-              <div className="space-y-1.5">
-                {["All Forms", "Tablet", "Capsule", "Syrup", "Injection", "Ointment"].map((form, idx) => (
-                  <label key={form} className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                    <input type="checkbox" defaultChecked={idx === 0} className="w-3.5 h-3.5 rounded border-gray-300 text-[#5b2bce] focus:ring-[#5b2bce]" />
-                    {form}
+            {forms.length > 0 && (
+              <div className="mb-4">
+                <p className="text-xs font-semibold text-gray-700 mb-2">Form</p>
+                <div className="space-y-1.5">
+                  <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                    <input type="radio" name="form" checked={filterForm === "all"} onChange={() => setFilterForm("all")} className="w-3.5 h-3.5 text-[#5b2bce]" />
+                    All
                   </label>
-                ))}
+                  {forms.map((f) => (
+                    <label key={f} className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                      <input type="radio" name="form" checked={filterForm === f} onChange={() => setFilterForm(f)} className="w-3.5 h-3.5 text-[#5b2bce]" />
+                      {f}
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Category — searchable dropdown */}
+            {categories.length > 0 && (
+              <div className="mb-4">
+                <p className="text-xs font-semibold text-gray-700 mb-2">Category</p>
+                <div className="relative">
+                  <select
+                    value={filterCategory}
+                    onChange={(e) => setFilterCategory(e.target.value)}
+                    className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs bg-white outline-none focus:ring-1 focus:ring-[#5b2bce] appearance-none"
+                  >
+                    <option value="all">All Categories</option>
+                    {categories
+                      .filter((c) => !categorySearch || c.toLowerCase().includes(categorySearch.toLowerCase()))
+                      .map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <HiOutlineChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
+                </div>
+                {/* Category search */}
+                <input
+                  type="text"
+                  value={categorySearch}
+                  onChange={(e) => setCategorySearch(e.target.value)}
+                  placeholder="Filter categories..."
+                  className="mt-1.5 w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs bg-white outline-none focus:ring-1 focus:ring-[#5b2bce]"
+                />
+              </div>
+            )}
 
             {/* Strength */}
-            <div className="mb-4">
-              <p className="text-xs font-semibold text-gray-700 mb-2">Strength</p>
-              <select className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs bg-white outline-none">
-                <option>Select Strength</option>
-              </select>
-            </div>
+            {strengths.length > 0 && (
+              <div className="mb-4">
+                <p className="text-xs font-semibold text-gray-700 mb-2">Strength</p>
+                <select value={filterStrength} onChange={(e) => setFilterStrength(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs bg-white outline-none focus:ring-1 focus:ring-[#5b2bce]">
+                  <option value="all">All Strengths</option>
+                  {strengths.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+            )}
 
-            {/* Buttons */}
-            <button className="w-full bg-[#5b2bce] hover:bg-[#4318d1] text-white py-2 rounded-lg text-xs font-bold transition-colors mb-2">
-              Apply Filters
-            </button>
-            <button className="w-full text-xs text-gray-500 hover:text-gray-700 font-medium">
-              Reset Filters
-            </button>
+            {activeFilterCount > 0 && (
+              <button onClick={clearAll} className="w-full text-xs text-[#5b2bce] hover:underline font-semibold text-center">
+                Clear All Filters
+              </button>
+            )}
           </div>
         </aside>
       </div>

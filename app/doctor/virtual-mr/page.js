@@ -336,22 +336,76 @@ export default function VirtualMRPage() {
                 </div>
               )}
 
-              {/* Links */}
-              <div className="space-y-2.5 pt-4 border-t border-gray-200/60">
-                <a href={referenceUrl || "#"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between px-4 py-3 rounded-xl bg-white border border-gray-200 hover:border-[#5b2bce] transition-colors">
-                  <span className="text-sm font-medium text-[#2D2A6A] flex items-center gap-2.5">
-                    <svg width="18" height="18" fill="#5b2bce" viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
-                    View Clinical Studies
-                  </span>
-                  <svg width="14" height="14" fill="#5b2bce" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
-                </a>
-                <a href={referenceUrl || "#"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between px-4 py-3 rounded-xl bg-white border border-gray-200 hover:border-[#5b2bce] transition-colors">
+              {/* Quick Facts */}
+              <div className="pt-4 border-t border-gray-200/60">
+                <p className="text-sm font-bold text-[#5b2bce] mb-3">⚡ Quick Facts</p>
+                <div className="space-y-2.5">
+                  {[
+                    { label: "Form", value: selectedDrug?.dosage_form || form },
+                    { label: "Strength", value: selectedDrug?.strength || selectedDrug?.dosage_strength || strength },
+                    { label: "Route", value: selectedDrug?.route || selectedDrug?.route_of_administration },
+                    { label: "Prescription", value: selectedDrug?.prescription_type || (selectedDrug?.prescription_required ? "Rx" : "OTC") },
+                    { label: "Category", value: selectedDrug?.therapeutic_category || selectedDrug?.drug_class },
+                    { label: "Schedule", value: selectedDrug?.schedule },
+                    { label: "Pack", value: selectedDrug?.packaging?.pack_quantity && selectedDrug?.packaging?.measurement_unit ? `${selectedDrug.packaging.pack_quantity} ${selectedDrug.packaging.measurement_unit}` : null },
+                    { label: "MRP", value: selectedDrug?.packaging?.mrp ? `₹${selectedDrug.packaging.mrp}` : null },
+                  ].filter((f) => f.value).map((f) => (
+                    <div key={f.label} className="flex items-center justify-between">
+                      <span className="text-xs text-gray-400">{f.label}</span>
+                      <span className="text-xs font-semibold text-[#2D2A6A] capitalize">{f.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="space-y-2 pt-4 border-t border-gray-200/60">
+                <Link
+                  href={`/doctor/drug-details/${selectedDrug?.id || selectedDrug?._id || encodeURIComponent(selectedDrug?.drug_name || "")}`}
+                  onClick={() => { if (selectedDrug) sessionStorage.setItem("selectedDrugData", JSON.stringify(selectedDrug)); }}
+                  className="flex items-center justify-between px-4 py-3 rounded-xl bg-white border border-gray-200 hover:border-[#5b2bce] transition-colors">
                   <span className="text-sm font-medium text-[#2D2A6A] flex items-center gap-2.5">
                     <svg width="18" height="18" fill="#5b2bce" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-                    Prescribing Information
+                    Full Drug Details
                   </span>
                   <svg width="14" height="14" fill="#5b2bce" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
-                </a>
+                </Link>
+                {(selectedDrug?.has_brochure || selectedDrug?.brochure_url) && (
+                  <button
+                    onClick={async () => {
+                      const oid = localStorage.getItem("selectedOrgId");
+                      const drugId = selectedDrug?.id || selectedDrug?._id;
+                      if (!oid || !drugId) return;
+                      const token = localStorage.getItem("access_token");
+                      try {
+                        const res = await fetch(`/api/v1/organizations/${oid}/drugs/${drugId}/brochure/download`, { headers: { Authorization: `Bearer ${token}` } });
+                        if (!res.ok) throw new Error();
+                        const blob = await res.blob();
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url; a.download = `${selectedDrug.drug_name || "drug"}_brochure.pdf`;
+                        document.body.appendChild(a); a.click();
+                        document.body.removeChild(a); URL.revokeObjectURL(url);
+                      } catch { alert("Failed to download brochure."); }
+                    }}
+                    className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-white border border-gray-200 hover:border-[#5b2bce] transition-colors">
+                    <span className="text-sm font-medium text-[#2D2A6A] flex items-center gap-2.5">
+                      <svg width="18" height="18" fill="#5b2bce" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                      Download Brochure
+                    </span>
+                    <svg width="14" height="14" fill="#5b2bce" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                  </button>
+                )}
+                {selectedDrug?.reference_url && selectedDrug.reference_url.startsWith("http") && (
+                  <a href={selectedDrug.reference_url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-between px-4 py-3 rounded-xl bg-white border border-gray-200 hover:border-[#5b2bce] transition-colors">
+                    <span className="text-sm font-medium text-[#2D2A6A] flex items-center gap-2.5">
+                      <svg width="18" height="18" fill="#5b2bce" viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
+                      Reference / Website
+                    </span>
+                    <svg width="14" height="14" fill="#5b2bce" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+                  </a>
+                )}
               </div>
             </div>
           </div>
