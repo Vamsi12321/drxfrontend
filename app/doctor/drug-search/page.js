@@ -13,7 +13,7 @@ const unique = (arr) => [...new Set(arr.filter(Boolean))].sort();
 export default function DoctorDrugSearch() {
   const router = useRouter();
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState("list");
+  const [viewMode, setViewMode] = useState("grid");
   const [sortBy, setSortBy] = useState("az");
   const [filterType, setFilterType] = useState("all");
   const [filterForm, setFilterForm] = useState("all");
@@ -63,7 +63,7 @@ export default function DoctorDrugSearch() {
     const drugForm = drug.dosage_form || getVal(drug, "dosage_form") || "";
     const drugStrength = drug.strength || getVal(drug, "strength") || drug.dosage_strength || "";
     const drugBrand = drug.brand_name || getVal(drug, "brand_name") || "";
-    const drugType = drug.prescription_type || (drug.prescription_required ? "Rx" : "OTC");
+    const drugType = drug.prescription_type || (drug.prescription_required ? "Rx" : "");
     const drugCat = drug.therapeutic_category || drug.drug_class || getVal(drug, "therapeutic_category") || "";
 
     const q = search.toLowerCase();
@@ -361,7 +361,7 @@ function DrugRow({ drug }) {
   const form = getVal(drug, "dosage_form") || getVal(drug, "form") || drug.dosage_form || "";
   const strength = getVal(drug, "dosage_strength") || getVal(drug, "strength") || drug.dosage_strength || "";
   const description = getVal(drug, "description") || getVal(drug, "indications") || drug.description || drug.indications || "";
-  const drugType = getVal(drug, "drug_type") || drug.drug_type || "OTC";
+  const drugType = drug.prescription_type || getVal(drug, "drug_type") || drug.drug_type || "";
   const tags = [];
   const indications = getVal(drug, "indications") || drug.indications;
   if (indications) {
@@ -376,10 +376,6 @@ function DrugRow({ drug }) {
       if (cat) tags.push(cat);
     }
   }
-
-  // Consistent rating based on name
-  const ratingNum = (4 + ((name.charCodeAt(0) + name.length) % 10) / 10).toFixed(1);
-  const ratingCount = ((name.charCodeAt(0) * 7) % 150) + 20;
 
   const icon = getDrugIcon(form);
 
@@ -397,8 +393,8 @@ function DrugRow({ drug }) {
             {/* Top row: name + type badge */}
             <div className="flex items-start justify-between gap-3 mb-1.5">
               <h3 className="text-base font-bold text-gray-900 group-hover:text-[#5b2bce] transition-colors capitalize">{name}</h3>
-              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${drugType === "Rx Only" || drugType === "Prescription" ? "bg-indigo-50 text-indigo-600 border border-indigo-200" : "bg-green-50 text-green-600 border border-green-200"}`}>
-                {drugType === "Prescription" ? "Rx Only" : drugType || "OTC"}
+              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${drugType === "Rx Only" || drugType === "Prescription" || drugType === "Rx" ? "bg-indigo-50 text-indigo-600 border border-indigo-200" : drugType ? "bg-green-50 text-green-600 border border-green-200" : "hidden"}`}>
+                {drugType === "Prescription" || drugType === "Rx" ? "Rx" : drugType || ""}
               </span>
             </div>
 
@@ -412,23 +408,16 @@ function DrugRow({ drug }) {
               <p className="text-sm text-gray-400 mb-4 line-clamp-1">{Array.isArray(description) ? description.join(", ") : description}</p>
             )}
 
-            {/* Bottom row: tags left, rating + view details right */}
+            {/* Bottom row: tags left, view details right */}
             <div className="flex items-center justify-between">
               <div className="flex gap-2">
                 {tags.map((tag) => (
                   <span key={tag} className="bg-indigo-50 text-[#5b2bce] px-3 py-1 rounded-lg text-xs font-semibold border border-indigo-100">{tag}</span>
                 ))}
               </div>
-              <div className="flex items-center gap-5">
-                <div className="flex items-center gap-1">
-                  <span className="text-amber-400 text-base">★</span>
-                  <span className="text-sm font-bold text-gray-800">{ratingNum}</span>
-                  <span className="text-xs text-gray-400">({ratingCount})</span>
-                </div>
-                <span className="text-sm text-[#5b2bce] font-semibold group-hover:underline flex items-center gap-1">
-                  View Details <span>→</span>
-                </span>
-              </div>
+              <span className="text-sm text-[#5b2bce] font-semibold group-hover:underline flex items-center gap-1">
+                View Details <span>→</span>
+              </span>
             </div>
           </div>
         </div>
@@ -443,9 +432,8 @@ function DrugCard({ drug }) {
   const form = getVal(drug, "dosage_form") || drug.dosage_form || "";
   const strength = getVal(drug, "dosage_strength") || drug.dosage_strength || "";
   const description = getVal(drug, "description") || getVal(drug, "indications") || drug.description || "";
-  const drugType = getVal(drug, "drug_type") || drug.drug_type || "OTC";
+  const drugType = drug.prescription_type || getVal(drug, "drug_type") || drug.drug_type || "";
   const icon = getDrugIcon(form);
-  const ratingNum = (4 + ((name.charCodeAt(0) + name.length) % 10) / 10).toFixed(1);
 
   return (
     <div onClick={() => window.__setSelectedDrug?.(drug)} className="cursor-pointer">
@@ -454,18 +442,14 @@ function DrugCard({ drug }) {
           <div className={`w-[52px] h-[52px] ${icon.bg} rounded-xl flex items-center justify-center overflow-hidden border border-gray-100`}>
             <img src={icon.img} alt={form || "drug"} className="w-[130px] h-[130px] object-cover object-center" />
           </div>
-          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${drugType === "Prescription" ? "bg-indigo-50 text-indigo-600 border border-indigo-200" : "bg-green-50 text-green-600 border border-green-200"}`}>
-            {drugType || "OTC"}
+          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${drugType === "Rx" || drugType === "Prescription" ? "bg-indigo-50 text-indigo-600 border border-indigo-200" : drugType ? "bg-green-50 text-green-600 border border-green-200" : "hidden"}`}>
+            {drugType === "Prescription" || drugType === "Rx" ? "Rx" : drugType}
           </span>
         </div>
         <h3 className="text-sm font-bold text-gray-900 group-hover:text-[#5b2bce] capitalize mb-1">{name}</h3>
         <p className="text-xs text-gray-400 mb-1.5">{[form, strength].filter(Boolean).join(" • ")}</p>
         {description && <p className="text-xs text-gray-500 line-clamp-1 mb-3">{Array.isArray(description) ? description.join(", ") : description}</p>}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <span className="text-amber-400 text-sm">★</span>
-            <span className="text-sm font-bold text-gray-800">{ratingNum}</span>
-          </div>
+        <div className="flex items-center justify-end">
           <span className="text-xs text-[#5b2bce] font-semibold group-hover:underline">View Details →</span>
         </div>
       </div>

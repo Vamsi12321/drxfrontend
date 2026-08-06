@@ -59,12 +59,12 @@ export default function DoctorCMEEvents() {
       event_id: event.id || event._id,
       event_title: event.title || "",
     }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["bookmarks-cme"] }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["bookmarks-cme"] }); setSuccessMsg("Event bookmarked successfully"); setTimeout(() => setSuccessMsg(""), 3000); },
   });
 
   const removeCmeBookmarkMutation = useMutation({
     mutationFn: (bookmarkId) => del(`/api/v1/bookmarks/cme/${bookmarkId}`),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["bookmarks-cme"] }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["bookmarks-cme"] }); setSuccessMsg("Bookmark removed"); setTimeout(() => setSuccessMsg(""), 3000); },
   });
 
   const handleCmeBookmarkToggle = (event) => {
@@ -112,9 +112,6 @@ export default function DoctorCMEEvents() {
 
   const activeRegs = myRegs.filter((r) => r.registration_status === "registered" || r.registration_status === "REGISTERED").length;
   const liveNowCount = ongoing.length;
-  const creditsEarned = completed.length * 2;
-  const totalCredits = 30;
-  const progressPercent = Math.min(Math.round((creditsEarned / totalCredits) * 100), 100);
 
   const getFilteredEvents = () => {
     switch (activeTab) {
@@ -411,49 +408,22 @@ export default function DoctorCMEEvents() {
 
         {/* Right Sidebar */}
         <div className="w-full xl:w-72 flex-shrink-0 space-y-5">
-          {/* My CME Progress */}
+          {/* My CME Stats — real data */}
           <div className="bg-white rounded-xl border border-gray-100 p-5">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-sm font-bold" style={{ color: "#3b3a8a" }}>My CME Progress</h3>
-              <button className="text-purple-600 text-xs font-semibold hover:underline">View All</button>
-            </div>
-            <div className="flex items-center gap-5">
-              {/* Donut */}
-              <div className="relative w-20 h-20 flex-shrink-0">
-                <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="#f3f0ff" strokeWidth="8" />
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="#7c3aed" strokeWidth="8"
-                    strokeDasharray={`${progressPercent * 2.51} 251`} strokeLinecap="round" />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-base font-bold" style={{ color: "#3b3a8a" }}>{progressPercent}%</span>
-                  <span className="text-[9px] text-gray-400">{creditsEarned}/{totalCredits}</span>
-                  <span className="text-[9px] text-gray-400">Credits</span>
-                </div>
+            <h3 className="text-sm font-bold mb-4" style={{ color: "#3b3a8a" }}>My CME Summary</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500">Registered</span>
+                <span className="text-sm font-bold text-purple-600">{activeRegs}</span>
               </div>
-              {/* Legend */}
-              <div className="space-y-2.5 text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 bg-green-500 rounded-full" />
-                  <span className="text-gray-600">Completed</span>
-                  <span className="ml-2 font-bold text-gray-800">{completed.length}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 bg-purple-500 rounded-full" />
-                  <span className="text-gray-600">In Progress</span>
-                  <span className="ml-2 font-bold text-gray-800">{activeRegs}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 bg-gray-300 rounded-full" />
-                  <span className="text-gray-600">Remaining</span>
-                  <span className="ml-2 font-bold text-gray-800">{Math.max(0, totalCredits - creditsEarned)}</span>
-                </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500">Completed</span>
+                <span className="text-sm font-bold text-green-600">{completed.length}</span>
               </div>
-            </div>
-            <div className="mt-4 bg-purple-50 rounded-lg px-3 py-2.5 flex items-center gap-2">
-              <svg className="w-4 h-4 text-purple-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-              <p className="text-xs text-purple-700 font-medium">{Math.max(0, totalCredits - creditsEarned)} more credits to reach CME Master</p>
-              <svg className="w-4 h-4 text-purple-400 ml-auto flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500">Total Events</span>
+                <span className="text-sm font-bold text-gray-800">{allEvents.length}</span>
+              </div>
             </div>
           </div>
 

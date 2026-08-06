@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { logout } from "@/lib/auth";
 import { get } from "@/lib/api";
+import { useQueryClient } from "@tanstack/react-query";
 
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", href: "/doctor/home" },
@@ -39,6 +40,7 @@ const NavIcon = ({ id, active }) => {
 export default function DoctorLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const [userName, setUserName] = useState("Doctor");
   const [companyName, setCompanyName] = useState("");
   const [showOrgDropdown, setShowOrgDropdown] = useState(false);
@@ -274,7 +276,7 @@ export default function DoctorLayout({ children }) {
                   <div className="p-2">
                     <p className="text-[10px] text-gray-400 font-medium px-3 py-1 uppercase tracking-wide">Switch Organization</p>
                     {myOrgs.map((org) => (
-                      <button key={org.organization_id} onClick={() => { setLoadingOrgName(org.organization_name); setOrgLoading(true); setShowOrgDropdown(false); localStorage.setItem("companyName", org.organization_name); localStorage.setItem("selectedOrgId", org.organization_id); localStorage.setItem("selectedOrgGid", org.organization_gid || ""); setTimeout(() => { setCompanyName(org.organization_name); setOrgLoading(false); setLoadingOrgName(""); }, 1200); }}
+                      <button key={org.organization_id} onClick={() => { setLoadingOrgName(org.organization_name); setOrgLoading(true); setShowOrgDropdown(false); localStorage.setItem("companyName", org.organization_name); localStorage.setItem("selectedOrgId", org.organization_id); localStorage.setItem("selectedOrgGid", org.organization_gid || ""); queryClient.clear(); setTimeout(() => { window.location.reload(); }, 800); }}
                         className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-colors ${companyName === org.organization_name ? "bg-indigo-50 text-[#5b2bce]" : "hover:bg-gray-50"}`}>
                         <div className="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center text-[8px] font-black text-gray-600">{(org.organization_name || "O").charAt(0)}</div>
                         <div>

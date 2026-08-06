@@ -181,3 +181,16 @@ select:disabled,
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Loading bar animation for drug detail fetch */
+@keyframes loadingBar {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(0%); }
+  100% { transform: translateX(200%); }
+}
+
+/* Shimmer animation for drug header card */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}

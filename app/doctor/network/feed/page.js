@@ -154,92 +154,95 @@ function FeedPageInner() {
 
       {/* Right Sidebar */}
       <div className="space-y-5">
-        {/* Trending Topics */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold" style={{ color: "#3b3a8a" }}>Trending Topics</h3>
-            <button className="text-purple-600 text-xs font-semibold hover:underline">View all</button>
-          </div>
-          <div className="space-y-3">
-            {[
-              { tag: "#CardiovascularHealth", posts: "1,234 posts" },
-              { tag: "#DiabetesCare", posts: "987 posts" },
-              { tag: "#MedicalResearch", posts: "765 posts" },
-              { tag: "#PatientCare", posts: "654 posts" },
-              { tag: "#Oncology", posts: "512 posts" },
-            ].map((t) => (
-              <div key={t.tag} className="flex items-center justify-between hover:bg-gray-50 px-2 py-1.5 rounded-lg cursor-pointer transition-colors">
-                <div className="flex items-center gap-2">
-                  <span className="text-purple-500 font-bold text-sm">#</span>
-                  <span className="text-sm font-medium text-purple-600">{t.tag.replace("#", "")}</span>
-                </div>
-                <span className="text-xs text-gray-400">{t.posts}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Suggested Connections — from Discover API */}
+        <SuggestedConnectionsSidebar />
 
-        {/* Suggested Connections */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold" style={{ color: "#3b3a8a" }}>Suggested Connections</h3>
-            <button className="text-purple-600 text-xs font-semibold hover:underline">View all</button>
-          </div>
-          <div className="space-y-3">
-            {[
-              { name: "Dr. Priya Sharma", spec: "Cardiologist", loc: "Delhi, India" },
-              { name: "Dr. Vivek Mehta", spec: "Oncologist", loc: "Mumbai, India" },
-              { name: "Dr. Neha Gupta", spec: "Endocrinologist", loc: "Gurgaon, India" },
-            ].map((doc) => (
-              <div key={doc.name} className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-                  {doc.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-800 truncate">{doc.name}</p>
-                  <p className="text-xs text-gray-400">{doc.spec}<br/>{doc.loc}</p>
-                </div>
-                <button className="px-3 py-1.5 border border-purple-200 text-purple-600 rounded-lg text-xs font-semibold hover:bg-purple-50 transition-all">
-                  Connect
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Popular Groups */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold" style={{ color: "#3b3a8a" }}>Popular Groups</h3>
-            <button className="text-purple-600 text-xs font-semibold hover:underline">View all</button>
-          </div>
-          <div className="space-y-3">
-            {[
-              { name: "Cardiology Insights", members: "1.8K members", color: "from-red-400 to-pink-500" },
-              { name: "Diabetes Management", members: "2.2K members", color: "from-green-400 to-emerald-500" },
-              { name: "Clinical Case Discussions", members: "1.5K members", color: "from-purple-400 to-indigo-500" },
-            ].map((g) => (
-              <div key={g.name} className="flex items-center gap-3">
-                <div className={`w-9 h-9 bg-gradient-to-br ${g.color} rounded-lg flex items-center justify-center text-white text-xs flex-shrink-0`}>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-800 truncate">{g.name}</p>
-                  <p className="text-xs text-gray-400">{g.members}</p>
-                </div>
-                <button className="px-3 py-1.5 border border-purple-200 text-purple-600 rounded-lg text-xs font-semibold hover:bg-purple-50 transition-all">
-                  Join
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* My Groups — from Groups API */}
+        <MyGroupsSidebar />
       </div>
 
       {showCreate && (
         <CreatePostModal userName={userName}
           onClose={() => setShowCreate(false)}
           onCreated={() => { invalidate(); setShowCreate(false); }} />
+      )}
+    </div>
+  );
+}
+
+function SuggestedConnectionsSidebar() {
+  const { data } = useQuery({
+    queryKey: ["discover-users-sidebar"],
+    queryFn: () => get("/api/v1/connections/discover?limit=5"),
+    staleTime: 60000,
+  });
+  const users = data?.users || [];
+
+  const queryClient = useQueryClient();
+  const connectMutation = useMutation({
+    mutationFn: (uid) => apiPost("/api/v1/connections/request/" + uid, {}),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["discover-users-sidebar"] }); queryClient.invalidateQueries({ queryKey: ["discover-users"] }); },
+  });
+
+  return (
+    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-bold" style={{ color: "#3b3a8a" }}>Suggested Connections</h3>
+      </div>
+      {users.length === 0 ? (
+        <p className="text-xs text-gray-400 text-center py-4">No suggestions right now</p>
+      ) : (
+        <div className="space-y-3">
+          {users.map((u) => (
+            <div key={u.user_id} className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                {(u.name || "").split(" ").map((n) => n[0]).join("").slice(0, 2)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800 truncate">{u.name}</p>
+                <p className="text-xs text-gray-400">{u.specialization || "Doctor"}{u.city ? ` · ${u.city}` : ""}</p>
+              </div>
+              <button onClick={() => connectMutation.mutate(u.user_id)} disabled={connectMutation.isPending}
+                className="px-3 py-1.5 border border-purple-200 text-purple-600 rounded-lg text-xs font-semibold hover:bg-purple-50 transition-all disabled:opacity-50">
+                Connect
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MyGroupsSidebar() {
+  const { data } = useQuery({
+    queryKey: ["my-groups-sidebar"],
+    queryFn: () => get("/api/v1/groups"),
+    staleTime: 60000,
+  });
+  const groups = data?.groups || [];
+
+  return (
+    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-bold" style={{ color: "#3b3a8a" }}>My Groups</h3>
+      </div>
+      {groups.length === 0 ? (
+        <p className="text-xs text-gray-400 text-center py-4">No groups yet</p>
+      ) : (
+        <div className="space-y-3">
+          {groups.slice(0, 4).map((g) => (
+            <div key={g.group_id} className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                {(g.group_name || "G").charAt(0).toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800 truncate">{g.group_name}</p>
+                <p className="text-xs text-gray-400">{g.members_count} members</p>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

@@ -18,7 +18,7 @@ export default function CMEEventDetailPage() {
   }, []);
 
   // Fetch full event detail
-  const { data: event, isLoading } = useQuery({
+  const { data: event, isLoading, isFetching } = useQuery({
     queryKey: ["cme-event-detail", orgId, id],
     queryFn: () => {
       if (!orgId) return null;
@@ -111,6 +111,13 @@ export default function CMEEventDetailPage() {
 
   return (
     <div className="space-y-5">
+      {/* Loading bar — shows while full detail fetches in background */}
+      {isFetching && (
+        <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-purple-100 overflow-hidden">
+          <div className="h-full bg-purple-600" style={{ width: "40%", animation: "loadingBar 1.5s ease-in-out infinite" }} />
+        </div>
+      )}
+
       {/* Success toast */}
       {successMsg && (
         <div className="fixed top-5 right-5 z-50 bg-green-600 text-white px-4 py-2.5 rounded-xl shadow-xl font-semibold text-sm flex items-center gap-2">
@@ -129,6 +136,10 @@ export default function CMEEventDetailPage() {
 
       {/* Hero Banner */}
       <div className="rounded-2xl overflow-hidden relative" style={{ background: "linear-gradient(135deg, #2E23B5 0%, #4B39E6 50%, #7c3aed 100%)" }}>
+        {isFetching && (
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none"
+            style={{ animation: "shimmer 1.5s infinite", backgroundSize: "200% 100%" }} />
+        )}
         <div className="relative px-6 sm:px-8 py-6 sm:py-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-3">

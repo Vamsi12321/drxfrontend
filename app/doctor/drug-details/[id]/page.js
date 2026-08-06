@@ -42,11 +42,12 @@ export default function DrugDetailsPage() {
   const [activeTab, setActiveTab] = useState("overview");
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
+  const [toast, setToast] = useState("");
   const [userName] = useState(typeof window !== "undefined" ? localStorage.getItem("userName") || "Doctor" : "Doctor");
   const [orgId] = useState(typeof window !== "undefined" ? localStorage.getItem("selectedOrgId") || null : null);
 
   // Fetch drug detail
-  const { data: drug, isLoading } = useQuery({
+  const { data: drug, isLoading, isFetching } = useQuery({
     queryKey: ["drug-detail", id, orgId],
     queryFn: () => {
       if (orgId) {
@@ -86,11 +87,11 @@ export default function DrugDetailsPage() {
 
   const addBookmarkMutation = useMutation({
     mutationFn: () => post("/api/v1/bookmarks/drugs", { organization_id: orgId, drug_id: id, drug_name: drug?.drug_name || "" }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["bookmarks-drugs"] }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["bookmarks-drugs"] }); setToast("Bookmarked successfully"); setTimeout(() => setToast(""), 3000); },
   });
   const removeBookmarkMutation = useMutation({
     mutationFn: () => del(`/api/v1/bookmarks/drugs/${currentBookmark?.id}`),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["bookmarks-drugs"] }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["bookmarks-drugs"] }); setToast("Bookmark removed"); setTimeout(() => setToast(""), 3000); },
   });
   const handleBookmarkToggle = () => {
     if (isBookmarked) removeBookmarkMutation.mutate();
@@ -168,6 +169,20 @@ export default function DrugDetailsPage() {
 
   return (
     <div className="space-y-4">
+      {/* Loading bar — shows while full detail is fetching in background */}
+      {isFetching && (
+        <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-indigo-100 overflow-hidden">
+          <div className="h-full bg-[#5b2bce]" style={{ width: "40%", animation: "loadingBar 1.5s ease-in-out infinite" }} />
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed top-5 right-5 z-50 bg-green-600 text-white px-4 py-2.5 rounded-xl shadow-xl font-semibold text-sm flex items-center gap-2 animate-[fadeSlide_0.3s_ease-out]">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+          {toast}
+        </div>
+      )}
       {/* Top bar */}
       <div className="flex items-center justify-between">
         <button onClick={() => router.back()} className="flex items-center gap-1.5 text-sm text-[#5b2bce] font-medium"><HiOutlineArrowLeft className="w-4 h-4" /> Back</button>
@@ -182,7 +197,11 @@ export default function DrugDetailsPage() {
         {/* Left content */}
         <div className="flex-1 min-w-0 space-y-4">
           {/* Header Card */}
-          <div className="bg-white rounded-xl border border-gray-100 p-5 sm:p-6">
+          <div className="bg-white rounded-xl border border-gray-100 p-5 sm:p-6 relative overflow-hidden">
+            {isFetching && (
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent pointer-events-none"
+                style={{ animation: "shimmer 1.5s infinite", backgroundSize: "200% 100%" }} />
+            )}
             <div className="flex items-start gap-4 sm:gap-5">
               <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#eef0f9] rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0">
                 <img src={drugIcon} alt={form} className="w-[160px] h-[160px] object-cover object-center" />

@@ -75,19 +75,13 @@ export default function DoctorNetworkLayout({ children }) {
               <Image src="/images/doctors/dr_network.png" alt="Doctor Network" fill className="object-contain object-bottom" />
             </div>
 
-            {/* Right stats + button */}
-            <div className="flex items-center gap-4 sm:gap-6">
-              <div className="text-center">
-                <p className="text-lg sm:text-2xl font-bold text-white">120+</p>
-                <p className="text-[10px] sm:text-xs" style={{ color: "#DAD8FF" }}>Doctors Online</p>
-              </div>
-              <div className="text-center">
-                <p className="text-lg sm:text-2xl font-bold text-white">2.4K+</p>
-                <p className="text-[10px] sm:text-xs" style={{ color: "#DAD8FF" }}>Active Members</p>
-              </div>
-              <button className="hidden sm:block px-5 py-2.5 bg-white rounded-lg font-semibold text-sm hover:bg-gray-50 transition-all" style={{ color: "#4A3AFF" }}>
-                Invite Doctors
-              </button>
+            {/* Right — Discover button */}
+            <div className="flex items-center">
+              <Link href="/doctor/network/discover"
+                className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-white rounded-lg font-semibold text-sm hover:bg-gray-50 transition-all" style={{ color: "#4A3AFF" }}>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                Discover Doctors
+              </Link>
             </div>
           </div>
         </div>
