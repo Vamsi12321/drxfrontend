@@ -133,7 +133,7 @@ function ConversationPanel({ convId, otherUser, currentUserId, accentColor, onBa
     staleTime: 0,
   });
 
-  const messages = data?.messages || [];
+  const messages = (data?.messages || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages.length]);
 

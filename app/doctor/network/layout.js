@@ -93,13 +93,13 @@ export default function DoctorNetworkLayout({ children }) {
               const active = pathname === tab.href;
               return (
                 <Link key={tab.href} href={tab.href}
-                  className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 border-b-2 font-medium transition-all whitespace-nowrap text-[11px] sm:text-sm ${
+                  className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 border-b-2 font-medium transition-all whitespace-nowrap text-sm ${
                     active
                       ? "border-purple-600 text-purple-600"
                       : "border-transparent text-gray-500 hover:text-gray-700"
                   }`}>
                   <tab.icon />
-                  <span className="hidden xs:inline">{tab.label}</span>
+                  <span className="hidden sm:inline">{tab.label}</span>
                 </Link>
               );
             })}
