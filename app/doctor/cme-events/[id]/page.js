@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { get, post as apiPost } from "@/lib/api";
+import { get, post as apiPost, del } from "@/lib/api";
 import { formatISTDate } from "@/lib/time";
 import Image from "next/image";
 
@@ -67,6 +67,29 @@ export default function CMEEventDetailPage() {
     },
   });
 
+  // Bookmark
+  const { data: cmeBookmarksData } = useQuery({
+    queryKey: ["bookmarks-cme", orgId],
+    queryFn: () => get("/api/v1/bookmarks/cme", orgId ? { org_id: orgId } : undefined),
+    staleTime: 60 * 1000,
+    enabled: !!orgId,
+  });
+  const currentBookmark = (cmeBookmarksData?.bookmarks || []).find((b) => b.event_id === id);
+  const isBookmarked = !!currentBookmark;
+
+  const addBookmarkMutation = useMutation({
+    mutationFn: () => apiPost("/api/v1/bookmarks/cme", { organization_id: orgId, event_id: id, event_title: event?.title || "" }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["bookmarks-cme"] }); setSuccessMsg("Event bookmarked!"); setTimeout(() => setSuccessMsg(""), 3000); },
+  });
+  const removeBookmarkMutation = useMutation({
+    mutationFn: () => del(`/api/v1/bookmarks/cme/${currentBookmark?.id}`),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["bookmarks-cme"] }); setSuccessMsg("Bookmark removed"); setTimeout(() => setSuccessMsg(""), 3000); },
+  });
+  const handleBookmarkToggle = () => {
+    if (isBookmarked) removeBookmarkMutation.mutate();
+    else addBookmarkMutation.mutate();
+  };
+
   if (isLoading && !event) {
     return (
       <div className="space-y-4">
@@ -128,11 +151,18 @@ export default function CMEEventDetailPage() {
         </div>
       )}
 
-      {/* Back button */}
-      <button onClick={() => router.back()} className="flex items-center gap-1.5 text-sm text-[#5b2bce] font-medium">
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-        Back to CME Events
-      </button>
+      {/* Back + Bookmark */}
+      <div className="flex items-center justify-between">
+        <button onClick={() => router.back()} className="flex items-center gap-1.5 text-sm text-[#5b2bce] font-medium">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          Back to CME Events
+        </button>
+        <button onClick={handleBookmarkToggle} disabled={addBookmarkMutation.isPending || removeBookmarkMutation.isPending || !orgId}
+          className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${isBookmarked ? "border-purple-500 bg-purple-50 text-purple-600" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+          <svg className="w-4 h-4" fill={isBookmarked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
+          {isBookmarked ? "Saved" : "Save"}
+        </button>
+      </div>
 
       {/* Hero Banner */}
       <div className="rounded-2xl overflow-hidden relative" style={{ background: "linear-gradient(135deg, #2E23B5 0%, #4B39E6 50%, #7c3aed 100%)" }}>

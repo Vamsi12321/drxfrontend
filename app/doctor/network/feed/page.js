@@ -82,21 +82,25 @@ function FeedPageInner() {
           {/* Action row */}
           <div className="flex items-center justify-between border-t border-gray-100 pt-3">
             <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-              <button className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-600 transition-colors">
+              <button className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-600 transition-colors relative group/tip">
                 <svg className="w-4.5 h-4.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 <span className="hidden sm:inline">Photo</span>
+                <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded-md opacity-0 group-hover/tip:opacity-100 pointer-events-none whitespace-nowrap transition-opacity">Coming soon</span>
               </button>
-              <button className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-600 transition-colors">
+              <button className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-600 transition-colors relative group/tip">
                 <svg className="w-4.5 h-4.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                 <span className="hidden sm:inline">Poll</span>
+                <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded-md opacity-0 group-hover/tip:opacity-100 pointer-events-none whitespace-nowrap transition-opacity">Coming soon</span>
               </button>
-              <button className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-600 transition-colors">
+              <button className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-600 transition-colors relative group/tip">
                 <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
                 <span className="hidden sm:inline">Article</span>
+                <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded-md opacity-0 group-hover/tip:opacity-100 pointer-events-none whitespace-nowrap transition-opacity">Coming soon</span>
               </button>
-              <button className="hidden sm:flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-600 transition-colors">
+              <button className="hidden sm:flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-600 transition-colors relative group/tip">
                 <svg className="w-4.5 h-4.5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" /></svg>
                 Case Discussion
+                <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded-md opacity-0 group-hover/tip:opacity-100 pointer-events-none whitespace-nowrap transition-opacity">Coming soon</span>
               </button>
             </div>
             <button onClick={() => setShowCreate(true)}

@@ -10,7 +10,7 @@ export default function OrganizationsPage() {
   const [editOrg, setEditOrg] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [editError, setEditError] = useState("");
-  const [form, setForm] = useState({ organization_name: "", contact_email: "", contact_phone: "", org_admin: "", admin_email: "", admin_phone: "", address: "", city: "", state: "", country: "India", pincode: "" });
+  const [form, setForm] = useState({ organization_name: "", contact_email: "", contact_phone: "", org_admin: "", admin_email: "", admin_phone: "", address: "", city: "", state: "", country: "India", pincode: "", mrx_url: "" });
   const [formError, setFormError] = useState("");
   const [createdResult, setCreatedResult] = useState(null);
 
@@ -80,7 +80,7 @@ export default function OrganizationsPage() {
   };
 
   const resetForm = () => {
-    setForm({ organization_name: "", contact_email: "", contact_phone: "", org_admin: "", admin_email: "", admin_phone: "", address: "", city: "", state: "", country: "India", pincode: "" });
+    setForm({ organization_name: "", contact_email: "", contact_phone: "", org_admin: "", admin_email: "", admin_phone: "", address: "", city: "", state: "", country: "India", pincode: "", mrx_url: "" });
     setFormError("");
     setCreatedResult(null);
     setShowAdd(false);
@@ -256,6 +256,11 @@ export default function OrganizationsPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
                     <input type="text" value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })}
                       placeholder="500032" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">MRX URL</label>
+                    <input type="url" value={form.mrx_url} onChange={(e) => setForm({ ...form, mrx_url: e.target.value })}
+                      placeholder="https://org.mrx.health" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
                   </div>
                 </div>
 
