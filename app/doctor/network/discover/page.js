@@ -48,7 +48,7 @@ export default function DiscoverPage() {
   });
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 min-w-0 overflow-x-hidden">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -85,7 +85,7 @@ export default function DiscoverPage() {
 
       {/* Loading skeletons */}
       {isLoading && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="bg-white rounded-2xl p-5 border border-gray-100 animate-pulse">
               <div className="flex items-center gap-3 mb-4">
@@ -113,7 +113,7 @@ export default function DiscoverPage() {
       {/* Doctor Cards Grid */}
       {!isLoading && users.length > 0 && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {users.map((u) => (
               <div key={u.user_id} className="bg-white rounded-2xl p-5 border border-gray-100 hover:shadow-md transition-all flex flex-col">
                 {/* Avatar + Name */}

@@ -33,7 +33,7 @@ export default function GroupsPage() {
   });
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden" style={{ height: "calc(100vh - 280px)", minHeight: "520px" }}>
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden" style={{ height: "calc(100vh - 280px)", minHeight: "520px", maxWidth: "100%" }}>
       <div className="flex h-full">
 
         {/* Sidebar */}

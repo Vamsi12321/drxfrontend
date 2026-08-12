@@ -46,10 +46,10 @@ export default function MessagesPage() {
   });
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden" style={{ height: "calc(100vh - 280px)", minHeight: "520px" }}>
-      <div className="flex h-full">
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden" style={{ height: "calc(100vh - 280px)", minHeight: "520px", maxWidth: "100%" }}>
+      <div className="flex h-full min-w-0 overflow-hidden">
         {/* Inbox */}
-        <div className={`${activeConvId ? "hidden sm:flex" : "flex"} flex-col w-full sm:w-80 border-r border-gray-100 flex-shrink-0`}>
+        <div className={`${activeConvId ? "hidden sm:flex" : "flex"} flex-col w-full sm:w-72 md:w-80 border-r border-gray-100 flex-shrink-0 min-w-0 overflow-hidden`}>
           <div className="p-4 border-b border-gray-100 flex items-center justify-between">
             <div>
               <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2"><Icons.messages /> Messages</h2>
@@ -180,7 +180,7 @@ function ConversationPanel({ convId, otherUser, currentUserId, accentColor, onBa
 
           return (
             <div key={m.message_id || m.id} className={`flex ${isOwn ? "justify-end" : "justify-start"} group`}>
-              <div className="max-w-xs sm:max-w-sm lg:max-w-md w-full">
+              <div className="max-w-[75%] sm:max-w-xs md:max-w-sm lg:max-w-md w-auto">
                 {isShared && sharedData ? (
                   <SharedPostBubble data={sharedData} personalMessage={m.content} isOwn={isOwn} isIndigo={isIndigo} />
                 ) : isShared ? (
@@ -209,7 +209,7 @@ function ConversationPanel({ convId, otherUser, currentUserId, accentColor, onBa
                     );
                   })()
                 ) : (
-                  <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${isOwn ? (isIndigo ? "bg-indigo-600 text-white rounded-br-sm" : "bg-orange-600 text-white rounded-br-sm") : "bg-gray-100 text-gray-800 rounded-bl-sm"}`}>
+                  <div className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl text-sm leading-relaxed break-words ${isOwn ? (isIndigo ? "bg-indigo-600 text-white rounded-br-sm" : "bg-orange-600 text-white rounded-br-sm") : "bg-gray-100 text-gray-800 rounded-bl-sm"}`}>
                     {m.content}
                   </div>
                 )}
@@ -309,7 +309,7 @@ function InboxTabs({ conversations, activeConvId, onSelect, isLoading, accentCol
           <div className="divide-y divide-gray-50">
             {displayed.map((c) => (
               <button key={c.conversation_id} onClick={() => onSelect(c.conversation_id)}
-                className={`w-full flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors text-left ${
+                className={`w-full flex items-center gap-3 p-3 sm:p-4 hover:bg-gray-50 transition-colors text-left overflow-hidden ${
                   activeConvId === c.conversation_id ? `bg-${accent}-50 border-r-2 border-${accent}-600` : ""
                 }`}>
                 <div className="relative flex-shrink-0">
@@ -353,7 +353,7 @@ function SharedPostBubble({ data, personalMessage, isOwn, isIndigo }) {
   const feedPath  = isIndigo ? "/doctor/network/feed" : "/mr/network/feed";
 
   return (
-    <div className={`rounded-2xl overflow-hidden border ${border} ${isOwn ? "rounded-br-sm" : "rounded-bl-sm"} max-w-xs sm:max-w-sm`}>
+    <div className={`rounded-2xl overflow-hidden border ${border} ${isOwn ? "rounded-br-sm" : "rounded-bl-sm"} max-w-[85%] sm:max-w-xs`}>
       {/* Header */}
       <div className={`px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 ${headerBg} ${headerTxt}`}>
         <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

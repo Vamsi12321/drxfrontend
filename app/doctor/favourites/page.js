@@ -17,6 +17,9 @@ export default function BookmarksPage() {
   const [orgId, setOrgId] = useState(null);
   const [companyName, setCompanyName] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [confirmDelete, setConfirmDelete] = useState(null); // { id, type }
+  const [removingId, setRemovingId] = useState(null);
+  const [toast, setToast] = useState("");
 
   useEffect(() => {
     setOrgId(localStorage.getItem("selectedOrgId") || null);
@@ -62,7 +65,10 @@ export default function BookmarksPage() {
   const removeDrugMutation = useMutation({
     mutationFn: (bookmarkId) => del(`/api/v1/bookmarks/drugs/${bookmarkId}`),
     onSuccess: () => {
+      setToast("Bookmark removed");
+      setTimeout(() => setToast(""), 3000);
       queryClient.invalidateQueries({ queryKey: ["bookmarks-drugs"] });
+      setRemovingId(null);
     },
   });
 
@@ -70,7 +76,10 @@ export default function BookmarksPage() {
   const removeCmeMutation = useMutation({
     mutationFn: (bookmarkId) => del(`/api/v1/bookmarks/cme/${bookmarkId}`),
     onSuccess: () => {
+      setToast("Bookmark removed");
+      setTimeout(() => setToast(""), 3000);
       queryClient.invalidateQueries({ queryKey: ["bookmarks-cme"] });
+      setRemovingId(null);
     },
   });
 
@@ -78,9 +87,25 @@ export default function BookmarksPage() {
   const removePostMutation = useMutation({
     mutationFn: (bookmarkId) => del(`/api/v1/bookmarks/posts/${bookmarkId}`),
     onSuccess: () => {
+      setToast("Bookmark removed");
+      setTimeout(() => setToast(""), 3000);
       queryClient.invalidateQueries({ queryKey: ["bookmarks-posts"] });
+      setRemovingId(null);
     },
   });
+
+  // Handle confirmed delete
+  const handleConfirmedDelete = () => {
+    if (!confirmDelete) return;
+    const { id, type } = confirmDelete;
+    setRemovingId(id);
+    setConfirmDelete(null);
+    setTimeout(() => {
+      if (type === "drug") removeDrugMutation.mutate(id);
+      else if (type === "cme") removeCmeMutation.mutate(id);
+      else if (type === "post") removePostMutation.mutate(id);
+    }, 300);
+  };
 
   const getTabCount = (tabId) => {
     switch (tabId) {
@@ -92,11 +117,11 @@ export default function BookmarksPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0 overflow-x-hidden">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: "#3b3a8a" }}>Bookmarks</h1>
+          <h1 className="text-lg sm:text-2xl font-bold" style={{ color: "#3b3a8a" }}>Bookmarks</h1>
           <p className="text-gray-500 text-sm mt-0.5">
             Your bookmarked drugs and CME events{companyName ? ` from ${companyName}` : ""}
           </p>
@@ -122,12 +147,12 @@ export default function BookmarksPage() {
       {orgId && (
         <>
           {/* Tabs */}
-          <div className="flex items-center gap-2 border-b border-gray-200">
+          <div className="flex items-center gap-1 sm:gap-2 border-b border-gray-200 overflow-x-auto scrollbar-hide">
             {TABS.map((t) => (
               <button
                 key={t.id}
                 onClick={() => setActiveTab(t.id)}
-                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-all ${
+                className={`px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
                   activeTab === t.id
                     ? "border-purple-600 text-purple-600"
                     : "border-transparent text-gray-500 hover:text-gray-700"
@@ -141,7 +166,7 @@ export default function BookmarksPage() {
 
           {/* Loading state */}
           {showLoading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="bg-white rounded-xl border border-gray-100 p-5 animate-pulse">
                   <div className="flex items-start gap-4">
@@ -179,17 +204,18 @@ export default function BookmarksPage() {
                 </div>
               )}
               {drugBookmarks.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {drugBookmarks.map((bookmark) => (
                     <div
                       key={bookmark.id}
-                      className="bg-white rounded-xl border border-gray-100 p-5 hover:shadow-md transition-all group relative"
+                      className={`bg-white rounded-xl border border-gray-100 p-3 sm:p-5 hover:shadow-md transition-all group relative ${removingId === bookmark.id ? "opacity-0 scale-95 translate-x-4" : "opacity-100"}`}
+                      style={{ transition: "all 0.3s ease" }}
                     >
                       {/* Remove button */}
                       <button
-                        onClick={() => removeDrugMutation.mutate(bookmark.id)}
+                        onClick={() => setConfirmDelete({ id: bookmark.id, type: "drug" })}
                         disabled={removeDrugMutation.isPending}
-                        className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
+                        className="absolute top-2 right-2 sm:top-3 sm:right-3 w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all disabled:opacity-50"
                         title="Remove bookmark"
                       >
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -201,7 +227,7 @@ export default function BookmarksPage() {
                         className="flex items-start gap-4 cursor-pointer"
                         onClick={() => router.push(`/doctor/drug-details/${bookmark.drug_id}`)}
                       >
-                        <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 flex-shrink-0 border border-blue-100">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 flex-shrink-0 border border-blue-100">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                           </svg>
@@ -256,17 +282,18 @@ export default function BookmarksPage() {
                 </div>
               )}
               {cmeBookmarks.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {cmeBookmarks.map((bookmark) => (
                     <div
                       key={bookmark.id}
-                      className="bg-white rounded-xl border border-gray-100 p-5 hover:shadow-md transition-all group relative"
+                      className={`bg-white rounded-xl border border-gray-100 p-3 sm:p-5 hover:shadow-md transition-all group relative ${removingId === bookmark.id ? "opacity-0 scale-95 translate-x-4" : "opacity-100"}`}
+                      style={{ transition: "all 0.3s ease" }}
                     >
                       {/* Remove button */}
                       <button
-                        onClick={() => removeCmeMutation.mutate(bookmark.id)}
+                        onClick={() => setConfirmDelete({ id: bookmark.id, type: "cme" })}
                         disabled={removeCmeMutation.isPending}
-                        className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
+                        className="absolute top-2 right-2 sm:top-3 sm:right-3 w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all disabled:opacity-50"
                         title="Remove bookmark"
                       >
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -278,7 +305,7 @@ export default function BookmarksPage() {
                         className="flex items-start gap-4 cursor-pointer"
                         onClick={() => router.push("/doctor/cme-events")}
                       >
-                        <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 flex-shrink-0 border border-purple-100">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 flex-shrink-0 border border-purple-100">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
@@ -333,17 +360,18 @@ export default function BookmarksPage() {
                 </div>
               )}
               {postBookmarks.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {postBookmarks.map((bookmark) => (
                     <div
                       key={bookmark.id}
-                      className="bg-white rounded-xl border border-gray-100 p-5 hover:shadow-md transition-all group relative"
+                      className={`bg-white rounded-xl border border-gray-100 p-3 sm:p-5 hover:shadow-md transition-all group relative ${removingId === bookmark.id ? "opacity-0 scale-95 translate-x-4" : "opacity-100"}`}
+                      style={{ transition: "all 0.3s ease" }}
                     >
                       {/* Remove button */}
                       <button
-                        onClick={() => removePostMutation.mutate(bookmark.id)}
+                        onClick={() => setConfirmDelete({ id: bookmark.id, type: "post" })}
                         disabled={removePostMutation.isPending}
-                        className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
+                        className="absolute top-2 right-2 sm:top-3 sm:right-3 w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all disabled:opacity-50"
                         title="Remove bookmark"
                       >
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -355,7 +383,7 @@ export default function BookmarksPage() {
                         className="flex items-start gap-4 cursor-pointer"
                         onClick={() => router.push(`/doctor/network/feed?post=${bookmark.post_id}`)}
                       >
-                        <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600 flex-shrink-0 border border-green-100">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600 flex-shrink-0 border border-green-100">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
@@ -415,6 +443,39 @@ export default function BookmarksPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed top-5 right-5 z-50 bg-green-600 text-white px-4 py-2.5 rounded-xl shadow-xl font-semibold text-sm flex items-center gap-2 animate-[fadeSlide_0.3s_ease-out]">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+          {toast}
+        </div>
+      )}
+
+      {/* Confirm Delete Modal */}
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 text-center">
+            <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+            </div>
+            <h3 className="text-base font-bold text-gray-900 mb-1">Remove Bookmark?</h3>
+            <p className="text-sm text-gray-500 mb-5">Are you sure you want to unbookmark this item?</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDelete(null)}
+                className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">
+                Cancel
+              </button>
+              <button onClick={handleConfirmedDelete}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-xl text-sm font-bold transition-all">
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

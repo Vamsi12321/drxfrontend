@@ -155,40 +155,42 @@ export default function MyActivityPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold" style={{ color: "#3b3a8a" }}>My Activity</h1>
-        <p className="text-gray-500 text-sm mt-0.5">Track your recent actions and engagement</p>
+        <h1 className="text-lg sm:text-2xl font-bold" style={{ color: "#3b3a8a" }}>My Activity</h1>
+        <p className="text-gray-500 text-xs sm:text-sm mt-0.5">Track your recent actions and engagement</p>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
         {statCards.map((card) => (
-          <div key={card.label} className={`bg-white rounded-xl p-4 border ${card.color.border} hover:shadow-sm transition-all`}>
-            <div className={`w-10 h-10 ${card.color.bg} rounded-xl flex items-center justify-center ${card.color.text} mb-3`}>
+          <div key={card.label} className={`bg-white rounded-xl p-3 sm:p-4 border ${card.color.border} hover:shadow-sm transition-all`}>
+            <div className={`w-8 h-8 sm:w-10 sm:h-10 ${card.color.bg} rounded-lg sm:rounded-xl flex items-center justify-center ${card.color.text} mb-2 sm:mb-3 flex-shrink-0`}>
               {card.icon}
             </div>
-            <p className="text-2xl font-bold" style={{ color: "#3b3a8a" }}>
+            <p className="text-lg sm:text-2xl font-bold" style={{ color: "#3b3a8a" }}>
               {orgStatsLoading ? "—" : card.value}
             </p>
-            <p className="text-gray-500 text-xs mt-0.5">{card.label}</p>
+            <p className="text-gray-500 text-[10px] sm:text-xs mt-0.5">{card.label}</p>
           </div>
         ))}
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-gray-200 overflow-x-auto scrollbar-hide">
-        {TABS.map((tab) => (
-          <button key={tab.id} onClick={() => { setActiveTab(tab.id); setPage(1); }}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
-              activeTab === tab.id
-                ? "border-purple-600 text-purple-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}>
-            {tab.label}
-          </button>
-        ))}
+      <div className="relative -mx-3 sm:mx-0 overflow-hidden">
+        <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide px-3 sm:px-0">
+          {TABS.map((tab) => (
+            <button key={tab.id} onClick={() => { setActiveTab(tab.id); setPage(1); }}
+              className={`flex-shrink-0 w-[25%] sm:w-auto px-1 sm:px-4 py-2 sm:py-2.5 text-[10px] sm:text-sm font-medium border-b-2 transition-all whitespace-nowrap text-center ${
+                activeTab === tab.id
+                  ? "border-purple-600 text-purple-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}>
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Scope hint */}
@@ -217,7 +219,7 @@ export default function MyActivityPage() {
       {/* Timeline */}
       {!showLoading && logs.length > 0 && (
         <div className="relative">
-          <div className="absolute left-[23px] top-0 bottom-0 w-0.5 bg-gray-100" />
+          <div className="absolute left-[17px] sm:left-[23px] top-0 bottom-0 w-0.5 bg-gray-100" />
           <div className="space-y-1">
             {logs.map((log) => {
               const c = colorMap[log.action] || colorMap.drug_viewed;
@@ -225,15 +227,15 @@ export default function MyActivityPage() {
               const title = actionLabels[log.action] || log.action?.replace(/_/g, " ") || "Activity";
               const description = getDescription(log);
               return (
-                <div key={log.id} className="relative flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-all group">
-                  <div className={`relative z-10 w-11 h-11 ${c.bg} rounded-xl flex items-center justify-center ${c.text} flex-shrink-0 border ${c.border} group-hover:scale-105 transition-transform`}>
+                <div key={log.id} className="relative flex items-start gap-3 sm:gap-4 p-2.5 sm:p-4 rounded-xl hover:bg-gray-50 transition-all group">
+                  <div className={`relative z-10 w-9 h-9 sm:w-11 sm:h-11 ${c.bg} rounded-lg sm:rounded-xl flex items-center justify-center ${c.text} flex-shrink-0 border ${c.border} group-hover:scale-105 transition-transform`}>
                     {icon}
                   </div>
                   <div className="flex-1 min-w-0 pt-0.5">
-                    <p className="text-sm font-semibold text-gray-800">{title}</p>
-                    <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">{description}</p>
+                    <p className="text-xs sm:text-sm font-semibold text-gray-800">{title}</p>
+                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{description}</p>
                   </div>
-                  <span className="text-xs text-gray-400 flex-shrink-0 pt-1">{timeAgo(log.created_at)}</span>
+                  <span className="text-[10px] sm:text-xs text-gray-400 flex-shrink-0 pt-1">{timeAgo(log.created_at)}</span>
                 </div>
               );
             })}

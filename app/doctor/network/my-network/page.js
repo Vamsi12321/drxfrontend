@@ -110,7 +110,7 @@ export default function MyNetworkPage() {
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 min-w-0 overflow-x-hidden">
       {/* Tab bar */}
       <div className="flex items-center gap-2 flex-wrap">
         {subTabs.map((t) => (
@@ -148,7 +148,7 @@ export default function MyNetworkPage() {
               text={search ? "No connections match your search" : "No connections yet"}
               sub={search ? "Try a different name" : "Discover doctors to connect with"} />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {filteredConnections.map((c) => (
                 <div key={c.user_id} className="bg-white rounded-2xl p-5 border border-gray-100 hover:shadow-md transition-all flex flex-col">
                   {/* Header */}
@@ -199,7 +199,7 @@ export default function MyNetworkPage() {
       {subTab === "received" && (
         recvLoading ? <ListSkeleton /> :
         received.length === 0 ? <EmptyState icon="📬" text="No pending requests" sub="Connection requests from other doctors will appear here" /> :
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {received.map((r) => (
             <div key={r.connection_id} className="bg-white rounded-2xl p-5 border border-gray-100 hover:shadow-sm transition-all">
               <div className="flex items-center gap-3 mb-4">
@@ -230,7 +230,7 @@ export default function MyNetworkPage() {
       {subTab === "sent" && (
         sentLoading ? <ListSkeleton /> :
         sent.length === 0 ? <EmptyState icon="📤" text="No sent requests" sub="Requests you send to other doctors will appear here" /> :
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {sent.map((r) => (
             <div key={r.connection_id} className="bg-white rounded-2xl p-5 border border-gray-100 hover:shadow-sm transition-all">
               <div className="flex items-center gap-3 mb-4">
@@ -257,7 +257,7 @@ export default function MyNetworkPage() {
       {subTab === "blocked" && (
         blockedLoading ? <ListSkeleton count={3} /> :
         blocked.length === 0 ? <EmptyState icon="🚫" text="No blocked users" sub="Users you block will appear here" /> :
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {blocked.map((u) => (
             <div key={u.user_id} className="bg-white rounded-2xl p-5 border border-red-50 hover:shadow-sm transition-all">
               <div className="flex items-center gap-3 mb-4">

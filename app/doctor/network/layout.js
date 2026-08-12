@@ -47,7 +47,7 @@ export default function DoctorNetworkLayout({ children }) {
 
   return (
     <NetworkToastContext.Provider value={{ showToast }}>
-      <div className="space-y-5">
+      <div className="space-y-5 min-w-0 overflow-x-hidden">
 
         {/* Hero Banner */}
         <div className="rounded-2xl overflow-hidden relative" style={{ background: "linear-gradient(90deg, #2E23B5 0%, #3B2CC9 35%, #4B39E6 70%, #5B4CFF 100%)" }}>
@@ -63,11 +63,11 @@ export default function DoctorNetworkLayout({ children }) {
             <div className="absolute bottom-8 right-72 w-6 h-4 bg-white/10 rounded-full hidden md:block" />
           </div>
 
-          <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between px-5 sm:px-8 py-5 sm:py-6 gap-4">
+          <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-8 py-4 sm:py-6 gap-3">
             {/* Left text */}
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">Doctor Network</h1>
-              <p className="text-xs sm:text-sm" style={{ color: "#DAD8FF" }}>A community to connect, share insights and grow together.</p>
+              <h1 className="text-lg sm:text-2xl font-bold text-white mb-0.5 sm:mb-1">Doctor Network</h1>
+              <p className="text-[11px] sm:text-sm" style={{ color: "#DAD8FF" }}>A community to connect, share insights and grow together.</p>
             </div>
 
             {/* Center illustration */}
@@ -93,13 +93,13 @@ export default function DoctorNetworkLayout({ children }) {
               const active = pathname === tab.href;
               return (
                 <Link key={tab.href} href={tab.href}
-                  className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2.5 sm:py-3 border-b-2 font-medium transition-all whitespace-nowrap text-xs sm:text-sm ${
+                  className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 border-b-2 font-medium transition-all whitespace-nowrap text-[11px] sm:text-sm ${
                     active
                       ? "border-purple-600 text-purple-600"
                       : "border-transparent text-gray-500 hover:text-gray-700"
                   }`}>
                   <tab.icon />
-                  {tab.label}
+                  <span className="hidden xs:inline">{tab.label}</span>
                 </Link>
               );
             })}

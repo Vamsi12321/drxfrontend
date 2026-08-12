@@ -87,10 +87,11 @@ export default function DoctorCMEEvents() {
     return eventDate === today;
   };
 
-  const upcoming = allFetched.filter((e) => e.status === "upcoming" || e.status === "UPCOMING");
+  const upcoming = allFetched.filter((e) => (e.status === "upcoming" || e.status === "UPCOMING") && e.status !== "cancelled" && e.status !== "CANCELLED");
   const ongoing = allFetched.filter((e) => e.status === "ongoing" || e.status === "ONGOING" || (isToday(e.event_date) && e.event_mode === "online" && e.meeting_link));
   const completed = allFetched.filter((e) => e.status === "completed" || e.status === "COMPLETED");
-  const allEvents = allFetched;
+  const cancelled = allFetched.filter((e) => e.status === "cancelled" || e.status === "CANCELLED");
+  const allEvents = allFetched.filter((e) => e.status !== "cancelled" && e.status !== "CANCELLED");
   const myRegs = regsData || [];
   // Registration response has `cme_id` which maps to event `id`
   const regMap = Object.fromEntries(myRegs.map((r) => [r.cme_id || r.event_id || r.id, r]));
@@ -118,6 +119,7 @@ export default function DoctorCMEEvents() {
       case "upcoming": return upcoming;
       case "live": return ongoing;
       case "completed": return completed;
+      case "cancelled": return cancelled;
       default: return allEvents;
     }
   };
@@ -126,6 +128,7 @@ export default function DoctorCMEEvents() {
   const isLoading = loadingUpcoming || loadingCompleted;
 
   const getEventStatus = (event) => {
+    if (event.status === "cancelled" || event.status === "CANCELLED") return "CANCELLED";
     if (event.status === "completed" || event.status === "COMPLETED") return "COMPLETED";
     if (event.status === "ongoing" || event.status === "ONGOING") return "LIVE NOW";
     if (isToday(event.event_date) && event.event_mode === "online" && event.meeting_link) return "LIVE NOW";
@@ -138,6 +141,7 @@ export default function DoctorCMEEvents() {
       case "LIVE NOW": return "bg-red-500 text-white";
       case "ON DEMAND": return "bg-orange-500 text-white";
       case "COMPLETED": return "bg-gray-500 text-white";
+      case "CANCELLED": return "bg-red-100 text-red-600";
       default: return "bg-purple-600 text-white";
     }
   };
@@ -155,6 +159,7 @@ export default function DoctorCMEEvents() {
     { id: "upcoming", label: "Upcoming" },
     { id: "live", label: "Live Now", dot: true },
     { id: "completed", label: "Completed" },
+    { id: "cancelled", label: "Cancelled" },
   ];
 
   return (
@@ -265,12 +270,12 @@ export default function DoctorCMEEvents() {
 
                 let actionLabel = "Register";
                 let actionColor = "bg-white text-purple-600 border-2 border-purple-600 hover:bg-purple-50";
-                if (status === "LIVE NOW" && isRegistered) {
+                if (status === "CANCELLED") {
+                  actionLabel = "Cancelled";
+                  actionColor = "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed";
+                } else if (status === "LIVE NOW" && isRegistered) {
                   actionLabel = "Join Live";
                   actionColor = "bg-green-500 text-white hover:bg-green-600 border-0";
-                } else if (status === "ON DEMAND") {
-                  actionLabel = "Watch Now";
-                  actionColor = "bg-purple-600 text-white hover:bg-purple-700 border-0";
                 } else if (isRegistered) {
                   actionLabel = "Registered";
                   actionColor = "bg-green-50 text-green-600 border border-green-200 cursor-default";
@@ -370,8 +375,8 @@ export default function DoctorCMEEvents() {
                           e.stopPropagation();
                           if (actionLabel === "Register") setConfirmEvent(event);
                           else if (actionLabel === "Join Live" && event.meeting_link) window.open(event.meeting_link, "_blank");
-                          else if (actionLabel === "Watch Now" && event.event_recording) window.open(event.event_recording, "_blank");
                         }}
+                        disabled={actionLabel === "Cancelled" || actionLabel === "Registered"}
                         className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${actionColor}`}
                       >
                         {actionLabel}

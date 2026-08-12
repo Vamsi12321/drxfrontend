@@ -126,7 +126,7 @@ export default function VirtualMRPage() {
         <p className="text-sm text-gray-500">Your AI-powered medical representative. Ask anything about our therapies, studies, and more.</p>
       </div>
 
-      <div className="flex gap-5">
+      <div className="flex gap-5 flex-col lg:flex-row">
         {/* ═══ Left — Drug selector + Chat ═══ */}
         <div className="flex-1 min-w-0">
           <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-5">
@@ -281,7 +281,7 @@ export default function VirtualMRPage() {
 
         {/* ═══ Right Sidebar — Drug Info Panel ═══ */}
         {selectedDrug && showInfo && (
-          <div className="w-[280px] flex-shrink-0 hidden lg:block">
+          <div className="w-full lg:w-[280px] flex-shrink-0">
             <div className="rounded-2xl border border-gray-100 p-6 sticky top-4 space-y-5" style={{ background: "linear-gradient(135deg, #F9F7FE 0%, #F6F4FC 100%)" }}>
               {/* Header */}
               <div className="flex items-center justify-between">

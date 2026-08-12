@@ -24,7 +24,7 @@ export default function MyPostsPage() {
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["my-posts"] });
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 min-w-0 overflow-hidden">
       <div className="lg:col-span-2 space-y-4">
         <div className="bg-white rounded-2xl p-5 shadow-lg border border-gray-200 flex items-center gap-4">
           <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg flex-shrink-0">
