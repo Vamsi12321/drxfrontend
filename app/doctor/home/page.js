@@ -75,7 +75,7 @@ export default function DoctorHome() {
           </p>
         </div>
         <img
-          src="/images/doctors/doctor_illustration.png"
+          src="/drx/images/doctors/doctor_illustration.png"
           alt=""
           className="h-28 hidden md:block object-contain"
         />
@@ -323,7 +323,7 @@ export default function DoctorHome() {
                       {doc.avatar_url ? (
                         <img src={doc.avatar_url} alt="" className="w-10 h-10 object-cover" />
                       ) : (
-                        <img src="/images/doctors/male_doc_avatar.png" alt="" className="w-10 h-10 object-cover" />
+                        <img src="/drx/images/doctors/male_doc_avatar.png" alt="" className="w-10 h-10 object-cover" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">

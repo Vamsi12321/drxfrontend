@@ -22,7 +22,7 @@ export default function ForgotPasswordPage() {
     if (!email || !role) { setError("Please enter email and select role."); return; }
     setLoading(true);
     try {
-      const res = await fetch("/api/v1/auth/forgot-password", {
+      const res = await fetch("/drx/api/v1/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, role }),
@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
     if (newPwd.length < 8)  { setError("Password must be at least 8 characters."); return; }
     setLoading(true);
     try {
-      const res = await fetch("/api/v1/auth/forgot-password/verify", {
+      const res = await fetch("/drx/api/v1/auth/forgot-password/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, role, otp, new_password: newPwd, confirm_password: confirm }),

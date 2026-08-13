@@ -21,7 +21,7 @@ export default function Login() {
     if (!email || !password) { setError("Please enter both email and password"); return; }
     setIsLoggingIn(true);
     try {
-      const res = await fetch("/api/v1/auth/doctor/login", {
+      const res = await fetch("/drx/api/v1/auth/doctor/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ identifier: email, password }),
@@ -129,7 +129,7 @@ export default function Login() {
 
         {/* Doctor illustration — centered vertically */}
         <div className="absolute inset-0 flex items-center justify-end pointer-events-none pr-4">
-          <img src="/images/doctors/dr_login.png" alt="" className="h-[75%] object-contain" />
+          <img src="/drx/images/doctors/dr_login.png" alt="" className="h-[75%] object-contain" />
         </div>
       </div>
 

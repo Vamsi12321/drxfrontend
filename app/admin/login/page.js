@@ -19,7 +19,7 @@ export default function AdminLoginPage() {
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/v1/auth/admin/login", {
+      const res = await fetch("/drx/api/v1/auth/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
       localStorage.setItem("drx_admin_token", data.access_token);
       localStorage.setItem("drx_admin_name", data.user?.name || "Admin");
       localStorage.setItem("userRole", data.role || "PLATFORM_ADMIN");
-      window.location.href = "/admin/dashboard";
+      window.location.href = "/drx/admin/dashboard";
     } catch (err) {
       setError("Unable to connect to server. Please try again.");
       setLoading(false);

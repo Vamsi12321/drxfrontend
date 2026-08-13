@@ -72,7 +72,7 @@ export default function DoctorNetworkLayout({ children }) {
 
             {/* Center illustration */}
             <div className="hidden lg:block w-64 h-40 relative self-end -mb-12 mr-[-100px]">
-              <Image src="/images/doctors/dr_network.png" alt="Doctor Network" fill className="object-contain object-bottom" />
+              <Image src="/drx/images/doctors/dr_network.png" alt="Doctor Network" fill className="object-contain object-bottom" />
             </div>
 
             {/* Right — Discover button */}

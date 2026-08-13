@@ -327,15 +327,15 @@ export default function DoctorDrugSearch() {
 
 // ── Drug Form Icon mapping to actual PNG images ──────────────────────────────
 const FORM_ICON_MAP = {
-  "Tablet": { img: "/images/icons/drug_icon.png", bg: "bg-blue-50" },
-  "Capsule": { img: "/images/icons/drug_icon.png", bg: "bg-indigo-50" },
-  "Syrup": { img: "/images/icons/syrup_icon.png", bg: "bg-green-50" },
-  "Injection": { img: "/images/icons/injection_icon.png", bg: "bg-purple-50" },
-  "Cream": { img: "/images/icons/ointment_icon.png", bg: "bg-yellow-50" },
-  "Ointment": { img: "/images/icons/ointment_icon.png", bg: "bg-yellow-50" },
-  "Drops": { img: "/images/icons/syrup_icon.png", bg: "bg-violet-50" },
-  "Powder": { img: "/images/icons/Powder.png", bg: "bg-amber-50" },
-  "Inhaler": { img: "/images/icons/inhaler_icon.png", bg: "bg-sky-50" },
+  "Tablet": { img: "/drx/images/icons/drug_icon.png", bg: "bg-blue-50" },
+  "Capsule": { img: "/drx/images/icons/drug_icon.png", bg: "bg-indigo-50" },
+  "Syrup": { img: "/drx/images/icons/syrup_icon.png", bg: "bg-green-50" },
+  "Injection": { img: "/drx/images/icons/injection_icon.png", bg: "bg-purple-50" },
+  "Cream": { img: "/drx/images/icons/ointment_icon.png", bg: "bg-yellow-50" },
+  "Ointment": { img: "/drx/images/icons/ointment_icon.png", bg: "bg-yellow-50" },
+  "Drops": { img: "/drx/images/icons/syrup_icon.png", bg: "bg-violet-50" },
+  "Powder": { img: "/drx/images/icons/Powder.png", bg: "bg-amber-50" },
+  "Inhaler": { img: "/drx/images/icons/inhaler_icon.png", bg: "bg-sky-50" },
 };
 
 const getDrugIcon = (form) => {
@@ -353,7 +353,7 @@ const getDrugIcon = (form) => {
   if (lower.includes("powder") || lower.includes("sachet")) return FORM_ICON_MAP["Powder"];
   if (lower.includes("inhaler") || lower.includes("inhalation")) return FORM_ICON_MAP["Inhaler"];
   // Default fallback
-  return { img: "/images/icons/drug_icon.png", bg: "bg-gray-50" };
+  return { img: "/drx/images/icons/drug_icon.png", bg: "bg-gray-50" };
 };
 
 function DrugRow({ drug }) {

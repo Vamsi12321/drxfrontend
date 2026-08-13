@@ -6,15 +6,15 @@ import { get, post, del } from "@/lib/api";
 import { HiOutlineArrowLeft, HiOutlineBookmark, HiBookmark } from "react-icons/hi";
 
 const FORM_ICONS = {
-  Tablet: "/images/icons/drug_icon.png",
-  Capsule: "/images/icons/drug_icon.png",
-  Syrup: "/images/icons/syrup_icon.png",
-  Injection: "/images/icons/injection_icon.png",
-  Inhaler: "/images/icons/inhaler_icon.png",
-  Cream: "/images/icons/ointment_icon.png",
-  Powder: "/images/icons/Powder.png",
-  Drops: "/images/icons/syrup_icon.png",
-  "Enteric-coated Tablet": "/images/icons/drug_icon.png",
+  Tablet: "/drx/images/icons/drug_icon.png",
+  Capsule: "/drx/images/icons/drug_icon.png",
+  Syrup: "/drx/images/icons/syrup_icon.png",
+  Injection: "/drx/images/icons/injection_icon.png",
+  Inhaler: "/drx/images/icons/inhaler_icon.png",
+  Cream: "/drx/images/icons/ointment_icon.png",
+  Powder: "/drx/images/icons/Powder.png",
+  Drops: "/drx/images/icons/syrup_icon.png",
+  "Enteric-coated Tablet": "/drx/images/icons/drug_icon.png",
 };
 
 // Fields already shown in dedicated sections — skip from "Additional Info"
@@ -105,7 +105,7 @@ export default function DrugDetailsPage() {
     if (!orgId) return;
     try {
       const token = localStorage.getItem("access_token");
-      const res = await fetch(`/api/v1/organizations/${orgId}/drugs/${id}/brochure/download`, {
+      const res = await fetch(`/drx/api/v1/organizations/${orgId}/drugs/${id}/brochure/download`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed");
@@ -153,7 +153,7 @@ export default function DrugDetailsPage() {
   const renalDose = drug.renal_dose_adjustment || "";
   const hepaticDose = drug.hepatic_dose_adjustment || "";
   const missedDose = drug.missed_dose_instructions || "";
-  const drugIcon = FORM_ICONS[form] || "/images/icons/drug_icon.png";
+  const drugIcon = FORM_ICONS[form] || "/drx/images/icons/drug_icon.png";
 
   const toList = (val) => { if (!val) return []; if (Array.isArray(val)) return val; return val.split(",").map((s) => s.trim()).filter(Boolean); };
   const indicationList = toList(drug.indications || drug.indication);
@@ -328,8 +328,8 @@ export default function DrugDetailsPage() {
               <span className="flex items-center gap-1 text-[10px] text-green-500 font-medium"><span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span> Online</span>
             </div>
             <div className="p-3 space-y-2.5 max-h-[250px] overflow-y-auto">
-              <div className="flex items-start gap-2"><div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0"><img src="/images/doctors/Virtual_mr_ai.png" alt="" className="w-6 h-6 object-cover" /></div><div className="bg-gray-50 rounded-lg rounded-tl-none px-3 py-2 max-w-[90%]"><p className="text-[11px] text-gray-700 leading-relaxed">Hi Dr. {userName} 👋<br/>How can I help you with <span className="text-[#5b2bce] font-semibold capitalize">{name}</span>?</p></div></div>
-              {chatMessages.map((msg, idx) => (<div key={idx} className={`flex items-start gap-2 ${msg.role === "user" ? "justify-end" : ""}`}>{msg.role === "ai" && <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0"><img src="/images/doctors/Virtual_mr_ai.png" alt="" className="w-6 h-6 object-cover" /></div>}<div className={`rounded-lg px-3 py-2 max-w-[85%] ${msg.role === "user" ? "bg-[#5b2bce] text-white rounded-tr-none" : "bg-gray-50 text-gray-700 rounded-tl-none"}`}><p className="text-[11px] leading-relaxed">{msg.text}</p></div></div>))}
+              <div className="flex items-start gap-2"><div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0"><img src="/drx/images/doctors/Virtual_mr_ai.png" alt="" className="w-6 h-6 object-cover" /></div><div className="bg-gray-50 rounded-lg rounded-tl-none px-3 py-2 max-w-[90%]"><p className="text-[11px] text-gray-700 leading-relaxed">Hi Dr. {userName} 👋<br/>How can I help you with <span className="text-[#5b2bce] font-semibold capitalize">{name}</span>?</p></div></div>
+              {chatMessages.map((msg, idx) => (<div key={idx} className={`flex items-start gap-2 ${msg.role === "user" ? "justify-end" : ""}`}>{msg.role === "ai" && <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0"><img src="/drx/images/doctors/Virtual_mr_ai.png" alt="" className="w-6 h-6 object-cover" /></div>}<div className={`rounded-lg px-3 py-2 max-w-[85%] ${msg.role === "user" ? "bg-[#5b2bce] text-white rounded-tr-none" : "bg-gray-50 text-gray-700 rounded-tl-none"}`}><p className="text-[11px] leading-relaxed">{msg.text}</p></div></div>))}
             </div>
             <div className="px-3 pb-2 flex flex-col gap-1.5">
               {["Dosage info?", "Side effects?", "Interactions?", "Contraindications?"].map((q) => (<button key={q} onClick={() => handleChat(q)} className="text-left text-[10px] text-gray-600 bg-gray-50 hover:bg-indigo-50 hover:text-[#5b2bce] px-3 py-1.5 rounded-lg border border-gray-100 font-medium transition-colors">{q}</button>))}

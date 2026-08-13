@@ -77,7 +77,7 @@ export default function DoctorLayout({ children }) {
     if (myOrgs.length > 0) return;
     const token = localStorage.getItem("access_token");
     if (!token) return;
-    fetch("/api/v1/my-organizations", { headers: { Authorization: `Bearer ${token}` } })
+    fetch("/drx/api/v1/my-organizations", { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.ok ? r.json() : null)
       .then((data) => { if (data?.organizations) setMyOrgs(data.organizations); })
       .catch(() => {});
@@ -111,7 +111,7 @@ export default function DoctorLayout({ children }) {
       {/* Logo */}
       <div className="px-3 pt-5 pb-4 flex items-center justify-center">
         <Link href="/doctor/home" className="flex items-center justify-center overflow-hidden">
-          <img src="/images/doctors/drx_icon.png" alt="DRX" className={`${collapsed && !mobileOpen ? "h-7" : "h-10"} object-contain transition-all`} />
+          <img src="/drx/images/doctors/drx_icon.png" alt="DRX" className={`${collapsed && !mobileOpen ? "h-7" : "h-10"} object-contain transition-all`} />
         </Link>
       </div>
 
@@ -264,7 +264,7 @@ export default function DoctorLayout({ children }) {
             {/* Organization selector */}
             <div className="relative">
               <div onClick={() => setShowOrgDropdown(!showOrgDropdown)} className="flex items-center gap-1.5 sm:gap-2 border border-gray-200 rounded-full px-2 sm:px-3 py-1 sm:py-1.5 bg-white cursor-pointer hover:border-gray-300 transition-colors">
-                <img src="/images/doctors/pharma_building.png" alt="" className="w-5 h-5 sm:w-7 sm:h-7 object-contain" />
+                <img src="/drx/images/doctors/pharma_building.png" alt="" className="w-5 h-5 sm:w-7 sm:h-7 object-contain" />
                 <div className="leading-tight hidden xs:block">
                   <p className="text-[8px] sm:text-[9px] text-gray-400">Organization</p>
                   <p className="text-[10px] sm:text-[11px] font-bold text-gray-900 max-w-[60px] sm:max-w-none truncate">{companyName || "Select"}</p>
@@ -306,7 +306,7 @@ export default function DoctorLayout({ children }) {
             </div>
             {/* Profile avatar */}
             <div className="flex items-center gap-2 cursor-pointer">
-              <img src="/images/doctors/male_doc_avatar.png" alt="" className="w-9 h-9 rounded-full object-cover" />
+              <img src="/drx/images/doctors/male_doc_avatar.png" alt="" className="w-9 h-9 rounded-full object-cover" />
               <span className="text-xs font-semibold text-gray-700 hidden md:inline">Dr. {userName}</span>
               <svg className="w-3 h-3 text-gray-400 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </div>

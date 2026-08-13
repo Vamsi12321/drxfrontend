@@ -6,7 +6,7 @@ import Link from "next/link";
 
 const getVal = (drug, key) => { const fv = drug?.field_values?.find((f) => f.key === key); if (!fv) return drug?.[key] || ""; if (Array.isArray(fv.value)) return fv.value; return fv.value || ""; };
 
-const FORM_ICONS = { Tablet: "/images/icons/drug_icon.png", Capsule: "/images/icons/drug_icon.png", Syrup: "/images/icons/syrup_icon.png", Injection: "/images/icons/injection_icon.png", Inhaler: "/images/icons/inhaler_icon.png", Cream: "/images/icons/ointment_icon.png", Powder: "/images/icons/Powder.png" };
+const FORM_ICONS = { Tablet: "/drx/images/icons/drug_icon.png", Capsule: "/drx/images/icons/drug_icon.png", Syrup: "/drx/images/icons/syrup_icon.png", Injection: "/drx/images/icons/injection_icon.png", Inhaler: "/drx/images/icons/inhaler_icon.png", Cream: "/drx/images/icons/ointment_icon.png", Powder: "/drx/images/icons/Powder.png" };
 
 export default function VirtualMRPage() {
   const [selectedDrugId, setSelectedDrugId] = useState("");
@@ -116,7 +116,7 @@ export default function VirtualMRPage() {
   const moa = selectedDrug?.mechanism_of_action || "";
   const sideEffects = selectedDrug?.side_effects || "";
   const referenceUrl = selectedDrug?.reference_url || "";
-  const drugIcon = FORM_ICONS[form] || "/images/icons/drug_icon.png";
+  const drugIcon = FORM_ICONS[form] || "/drx/images/icons/drug_icon.png";
 
   return (
     <div className="space-y-4">
@@ -160,7 +160,7 @@ export default function VirtualMRPage() {
                       <button key={d.id || d._id || d.drug_name} onClick={() => { setSelectedDrugId(d.id || d._id); setShowDropdown(false); setDrugSearch(""); setChatMessages([]); }}
                         className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-indigo-50 transition-colors ${selectedDrugId === (d.id || d._id) ? "bg-indigo-50" : ""}`}>
                         <div className="w-6 h-6 bg-[#eef0f9] rounded overflow-hidden flex items-center justify-center flex-shrink-0">
-                          <img src={FORM_ICONS[d.dosage_form] || "/images/icons/drug_icon.png"} alt="" className="w-[60px] h-[60px] object-cover object-center" />
+                          <img src={FORM_ICONS[d.dosage_form] || "/drx/images/icons/drug_icon.png"} alt="" className="w-[60px] h-[60px] object-cover object-center" />
                         </div>
                         <div>
                           <p className="text-xs font-medium text-gray-800 capitalize">{d.drug_name || d.brand_name}</p>
@@ -210,7 +210,7 @@ export default function VirtualMRPage() {
               {!selectedDrug && chatMessages.length === 0 && (
                 <div className="text-center py-12">
                   <div className="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <img src="/images/doctors/Virtual_mr_ai.png" alt="" className="w-10 h-10 object-cover rounded-full" />
+                    <img src="/drx/images/doctors/Virtual_mr_ai.png" alt="" className="w-10 h-10 object-cover rounded-full" />
                   </div>
                   <p className="text-sm text-gray-500 font-medium">Select a drug above to start chatting</p>
                   <p className="text-xs text-gray-400 mt-1">I can answer questions about dosage, side effects, interactions, and more.</p>
@@ -220,7 +220,7 @@ export default function VirtualMRPage() {
               {selectedDrug && chatMessages.length === 0 && (
                 <div className="flex items-start gap-2.5">
                   <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-indigo-50 flex items-center justify-center">
-                    <img src="/images/doctors/Virtual_mr_ai.png" alt="" className="w-8 h-8 object-cover" />
+                    <img src="/drx/images/doctors/Virtual_mr_ai.png" alt="" className="w-8 h-8 object-cover" />
                   </div>
                   <div className="rounded-xl rounded-tl-none px-4 py-3 max-w-[75%]" style={{ background: "linear-gradient(135deg, #F3EEFD 0%, #EFEAFB 100%)" }}>
                     <p className="text-sm text-[#2D2A6A] leading-relaxed">Hi Dr. {userName}! I'm ready to help you with <span className="font-semibold text-[#5b2bce] capitalize">{drugName}</span>. What would you like to know?</p>
@@ -232,7 +232,7 @@ export default function VirtualMRPage() {
                 <div key={idx} className={`flex items-start gap-2.5 ${msg.role === "user" ? "justify-end" : ""}`}>
                   {msg.role === "ai" && (
                     <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-indigo-50">
-                      <img src="/images/doctors/Virtual_mr_ai.png" alt="" className="w-8 h-8 object-cover" />
+                      <img src="/drx/images/doctors/Virtual_mr_ai.png" alt="" className="w-8 h-8 object-cover" />
                     </div>
                   )}
                   <div className={`max-w-[75%] ${msg.role === "user" ? "" : ""}`}>
@@ -378,7 +378,7 @@ export default function VirtualMRPage() {
                       if (!oid || !drugId) return;
                       const token = localStorage.getItem("access_token");
                       try {
-                        const res = await fetch(`/api/v1/organizations/${oid}/drugs/${drugId}/brochure/download`, { headers: { Authorization: `Bearer ${token}` } });
+                        const res = await fetch(`/drx/api/v1/organizations/${oid}/drugs/${drugId}/brochure/download`, { headers: { Authorization: `Bearer ${token}` } });
                         if (!res.ok) throw new Error();
                         const blob = await res.blob();
                         const url = URL.createObjectURL(blob);

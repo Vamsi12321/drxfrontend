@@ -66,6 +66,7 @@ export default function OrganizationsPage() {
       state: org.state || "",
       country: org.country || "India",
       pincode: org.pincode || "",
+      mrx_url: org.mrx_url || "",
     });
     setEditError("");
   };
@@ -327,6 +328,11 @@ export default function OrganizationsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
                 <input type="text" value={editForm.address} onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">MRX URL</label>
+                <input type="url" value={editForm.mrx_url || ""} onChange={(e) => setEditForm({ ...editForm, mrx_url: e.target.value })}
+                  placeholder="https://org.mrx.health" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
               </div>
             </div>
 

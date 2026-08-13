@@ -186,7 +186,7 @@ export default function CMEEventDetailPage() {
             {speaker && <p className="text-indigo-200 text-sm">Speaker: <span className="text-white font-semibold">{speaker}</span></p>}
           </div>
           <div className="hidden md:block w-28 h-28 relative flex-shrink-0">
-            <Image src="/images/cme/cme_icon.png" alt="" fill className="object-contain" />
+            <Image src="/drx/images/cme/cme_icon.png" alt="" fill className="object-contain" />
           </div>
         </div>
       </div>

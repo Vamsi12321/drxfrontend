@@ -220,7 +220,7 @@ export default function DoctorCMEEvents() {
 
           {/* Right illustration */}
           <div className="hidden lg:block w-40 h-32 relative self-start -mt-2 -mr-2">
-            <Image src="/images/cme/cme_icon.png" alt="CME" fill className="object-contain object-right-top" />
+            <Image src="/drx/images/cme/cme_icon.png" alt="CME" fill className="object-contain object-right-top" />
           </div>
         </div>
       </div>
@@ -293,7 +293,7 @@ export default function DoctorCMEEvents() {
                       <span className={`absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${statusBadge}`}>
                         {status}
                       </span>
-                      <Image src="/images/cme/cme_icon.png" alt="" width={70} height={70} className="object-contain opacity-80" />
+                      <Image src="/drx/images/cme/cme_icon.png" alt="" width={70} height={70} className="object-contain opacity-80" />
                     </div>
 
                     {/* Content area */}
@@ -443,7 +443,7 @@ export default function DoctorCMEEvents() {
                   className="flex items-start gap-3 cursor-pointer group"
                   onClick={() => { sessionStorage.setItem("selectedCMEEvent", JSON.stringify(event)); router.push(`/doctor/cme-events/${event.id || event._id}`); }}>
                   <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    <Image src="/images/cme/cme_icon.png" alt="" width={30} height={30} className="object-contain" />
+                    <Image src="/drx/images/cme/cme_icon.png" alt="" width={30} height={30} className="object-contain" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[11px] text-gray-400 mb-0.5">{formatISTDate(event.event_date)}{event.event_time ? ` • ${event.event_time}` : ""}</p>
