@@ -10,7 +10,7 @@ async function forward(req, { params }) {
   const path = segments.join("/");
   const { searchParams } = new URL(req.url);
   const query = searchParams.toString();
-  const url = `${BACKEND}/drx/api/v1/${path}${query ? "?" + query : ""}`;
+  const url = `${BACKEND}/${path}${query ? "?" + query : ""}`;
 
   const method = req.method;
   const auth = req.headers.get("authorization") || "";
