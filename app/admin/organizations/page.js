@@ -10,9 +10,11 @@ export default function OrganizationsPage() {
   const [editOrg, setEditOrg] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [editError, setEditError] = useState("");
-  const [form, setForm] = useState({ organization_name: "", contact_email: "", contact_phone: "", org_admin: "", admin_email: "", admin_phone: "", address: "", city: "", state: "", country: "India", pincode: "", mrx_url: "" });
+  const [form, setForm] = useState({ organization_name: "", contact_email: "", contact_phone: "", org_admin: "", admin_username: "", admin_email: "", admin_phone: "", admin_password: "Welcome@123", address: "", city: "", state: "", country: "India", pincode: "", mrx_url: "" });
   const [formError, setFormError] = useState("");
   const [createdResult, setCreatedResult] = useState(null);
+  const [showAdminPw, setShowAdminPw] = useState(false);
+  const [creatingStep, setCreatingStep] = useState(""); // "registering" | "creating" | ""
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-orgs-list", search],
@@ -26,9 +28,10 @@ export default function OrganizationsPage() {
     mutationFn: (body) => apiPost("/api/v1/organizations", body),
     onSuccess: (res) => {
       setCreatedResult(res);
+      setCreatingStep("");
       queryClient.invalidateQueries({ queryKey: ["admin-orgs-list"] });
     },
-    onError: (err) => setFormError(err.message || "Failed to create organization"),
+    onError: (err) => { setFormError(err.message || "Failed to create organization"); setCreatingStep(""); },
   });
 
   const activateMutation = useMutation({
@@ -71,19 +74,79 @@ export default function OrganizationsPage() {
     setEditError("");
   };
 
-  const handleCreate = () => {
+  // Auto-generate username from admin name
+  const generateUsername = (name) => {
+    const base = (name || "admin").toLowerCase().replace(/[^a-z0-9]/g, "_").replace(/_+/g, "_").slice(0, 20);
+    const rand = Math.floor(100 + Math.random() * 900);
+    return `${base}_${rand}`;
+  };
+
+  // When org_admin name changes, auto-generate username
+  const handleAdminNameChange = (name) => {
+    setForm((prev) => ({ ...prev, org_admin: name, admin_username: generateUsername(name) }));
+  };
+
+  const handleCreate = async () => {
     setFormError("");
-    if (!form.organization_name.trim() || !form.contact_email.trim()) {
-      setFormError("Organization name and contact email are required.");
+    if (!form.organization_name.trim() || !form.mrx_url.trim()) {
+      setFormError("Organization name and MRX URL are required.");
       return;
     }
+    if (!form.org_admin.trim() || !form.admin_username.trim() || !form.admin_email.trim()) {
+      setFormError("Admin name, username, and email are required.");
+      return;
+    }
+    // Validate username
+    if (!/^[a-z0-9_]{3,30}$/.test(form.admin_username)) {
+      setFormError("Username must be 3-30 chars, lowercase letters, numbers, underscores only.");
+      return;
+    }
+    // Validate password
+    const pw = form.admin_password;
+    if (pw.length < 8 || !/[A-Z]/.test(pw) || !/[a-z]/.test(pw) || !/[0-9]/.test(pw) || !/[!@#$%^&*]/.test(pw)) {
+      setFormError("Password must be 8+ chars with 1 uppercase, 1 lowercase, 1 number, 1 symbol.");
+      return;
+    }
+
+    // Step 1: Register admin user on Proxzar
+    setCreatingStep("registering");
+    try {
+      const regRes = await fetch("/drx/api/v1/proxzar-register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          UserName: form.admin_username,
+          UserPassword: form.admin_password,
+          UserFullName: form.org_admin,
+          UserEmail: form.admin_email,
+          UserPhone: form.admin_phone ? `+91${form.admin_phone.replace(/^\+91/, "")}` : "",
+          DataSource: "DRX",
+        }),
+      });
+      const regData = await regRes.json();
+      if (!regRes.ok) {
+        const msg = regData?.detail?.[0]?.msg || regData?.detail || regData?.message || "Admin registration failed.";
+        setFormError(typeof msg === "string" ? msg : JSON.stringify(msg));
+        setCreatingStep("");
+        return;
+      }
+    } catch (err) {
+      setFormError("Failed to register admin user: " + (err.message || "Network error"));
+      setCreatingStep("");
+      return;
+    }
+
+    // Step 2: Create organization
+    setCreatingStep("creating");
     createMutation.mutate(form);
   };
 
   const resetForm = () => {
-    setForm({ organization_name: "", contact_email: "", contact_phone: "", org_admin: "", admin_email: "", admin_phone: "", address: "", city: "", state: "", country: "India", pincode: "", mrx_url: "" });
+    setForm({ organization_name: "", contact_email: "", contact_phone: "", org_admin: "", admin_username: "", admin_email: "", admin_phone: "", admin_password: "Welcome@123", address: "", city: "", state: "", country: "India", pincode: "", mrx_url: "" });
     setFormError("");
     setCreatedResult(null);
+    setCreatingStep("");
+    setShowAdminPw(false);
     setShowAdd(false);
   };
 
@@ -207,14 +270,77 @@ export default function OrganizationsPage() {
                   <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2.5 rounded-xl text-sm mb-4">{formError}</div>
                 )}
 
+                {/* Step indicator */}
+                {creatingStep && (
+                  <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
+                    <svg className="w-4 h-4 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    <span className="text-sm text-indigo-700 font-medium">
+                      {creatingStep === "registering" ? "Step 1/2: Registering admin user..." : "Step 2/2: Creating organization..."}
+                    </span>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-4">
+                  {/* ── Admin Details ── */}
+                  <div className="col-span-2">
+                    <p className="text-xs font-bold text-purple-600 uppercase tracking-widest mb-3 mt-1">Admin Details</p>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Admin Full Name *</label>
+                    <input type="text" value={form.org_admin} onChange={(e) => handleAdminNameChange(e.target.value)}
+                      placeholder="Rajesh Kumar" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Username *</label>
+                    <div className="flex gap-1.5">
+                      <input type="text" value={form.admin_username} onChange={(e) => setForm({ ...form, admin_username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "") })}
+                        placeholder="rajesh_kumar_123" className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100 font-mono" />
+                      <button type="button" onClick={() => setForm({ ...form, admin_username: generateUsername(form.org_admin) })}
+                        className="px-2.5 py-2 border border-gray-200 rounded-xl text-xs text-purple-600 hover:bg-purple-50 font-semibold flex-shrink-0" title="Regenerate">
+                        ↻
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-1">3-30 chars, lowercase, numbers, underscores</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
+                    <div className="relative">
+                      <input type={showAdminPw ? "text" : "password"} value={form.admin_password} onChange={(e) => setForm({ ...form, admin_password: e.target.value })}
+                        placeholder="Welcome@123" className="w-full px-4 py-2.5 pr-12 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
+                      <button type="button" onClick={() => setShowAdminPw(!showAdminPw)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs font-medium">
+                        {showAdminPw ? "Hide" : "Show"}
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-1">8+ chars, 1 upper, 1 lower, 1 number, 1 symbol</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Admin Email *</label>
+                    <input type="email" value={form.admin_email} onChange={(e) => setForm({ ...form, admin_email: e.target.value })}
+                      placeholder="rajesh@xyzpharma.com" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Admin Phone</label>
+                    <input type="tel" value={form.admin_phone} onChange={(e) => setForm({ ...form, admin_phone: e.target.value })}
+                      placeholder="9876543210" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
+                  </div>
+
+                  {/* ── Organization Details ── */}
+                  <div className="col-span-2">
+                    <p className="text-xs font-bold text-purple-600 uppercase tracking-widest mb-3 mt-3 border-t border-gray-100 pt-4">Organization Details</p>
+                  </div>
                   <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Organization Name *</label>
                     <input type="text" value={form.organization_name} onChange={(e) => setForm({ ...form, organization_name: e.target.value })}
                       placeholder="XYZ Pharma Pvt Ltd" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
                   </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">MRX URL *</label>
+                    <input type="url" value={form.mrx_url} onChange={(e) => setForm({ ...form, mrx_url: e.target.value })}
+                      placeholder="https://org.mrx.health" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
+                  </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Contact Email *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
                     <input type="email" value={form.contact_email} onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
                       placeholder="info@xyzpharma.com" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
                   </div>
@@ -224,52 +350,27 @@ export default function OrganizationsPage() {
                       placeholder="9876543210" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Org Admin Name</label>
-                    <input type="text" value={form.org_admin} onChange={(e) => setForm({ ...form, org_admin: e.target.value })}
-                      placeholder="Rajesh Kumar" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Admin Email</label>
-                    <input type="email" value={form.admin_email} onChange={(e) => setForm({ ...form, admin_email: e.target.value })}
-                      placeholder="rajesh@xyzpharma.com" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Admin Phone</label>
-                    <input type="tel" value={form.admin_phone} onChange={(e) => setForm({ ...form, admin_phone: e.target.value })}
-                      placeholder="9876543211" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
-                  </div>
-                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
                     <input type="text" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })}
-                      placeholder="Hyderabad" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
+                      placeholder="Mumbai" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                    <input type="text" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })}
+                      placeholder="Maharashtra" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
                   </div>
                   <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
                     <input type="text" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })}
                       placeholder="Plot 45, Industrial Area" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                    <input type="text" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })}
-                      placeholder="Telangana" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
-                    <input type="text" value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })}
-                      placeholder="500032" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
-                  </div>
-                  <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">MRX URL</label>
-                    <input type="url" value={form.mrx_url} onChange={(e) => setForm({ ...form, mrx_url: e.target.value })}
-                      placeholder="https://org.mrx.health" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
-                  </div>
                 </div>
 
                 <div className="flex gap-3 mt-6">
                   <button onClick={resetForm} className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50">Cancel</button>
-                  <button onClick={handleCreate} disabled={createMutation.isPending}
-                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-50">
-                    {createMutation.isPending ? "Creating..." : "Create Organization"}
+                  <button onClick={handleCreate} disabled={!!creatingStep}
+                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-60">
+                    {creatingStep ? "Processing..." : "Create Organization"}
                   </button>
                 </div>
               </>
@@ -277,6 +378,7 @@ export default function OrganizationsPage() {
           </div>
         </div>
       )}
+
       {/* Edit Org Modal */}
       {editOrg && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">

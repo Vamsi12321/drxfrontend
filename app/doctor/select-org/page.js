@@ -104,8 +104,12 @@ export default function SelectOrgPage() {
               [1,2,3,4].map((i) => <div key={i} className="h-28 bg-gray-50 rounded-xl animate-pulse border border-gray-100" />)
             ) : orgs.length === 0 ? (
               <div className="col-span-2 text-center py-8">
-                <p className="text-gray-400 text-sm">No organizations linked yet.</p>
-                <p className="text-xs text-gray-300 mt-1">Ask a pharma company to add you, or contact DRX support.</p>
+                <p className="text-gray-500 text-sm font-medium">No organizations linked yet.</p>
+                <p className="text-xs text-gray-400 mt-1">Please contact your DRX admin to get linked to an organization.</p>
+                <button onClick={() => { localStorage.clear(); document.cookie = "access_token=; path=/; max-age=0"; document.cookie = "userRole=; path=/; max-age=0"; window.location.href = "/drx/login"; }}
+                  className="mt-5 px-6 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-sm font-semibold transition-all">
+                  Logout
+                </button>
               </div>
             ) : orgs.map((org) => (
               <button
@@ -127,10 +131,12 @@ export default function SelectOrgPage() {
             ))}
           </div>
 
-          {/* More orgs */}
-          <button className="w-full border-2 border-dashed border-gray-200 rounded-xl py-3 text-sm font-medium text-gray-400 hover:border-[#5b2bce] hover:text-[#5b2bce] transition-colors">
-            + More Organizations
-          </button>
+          {/* More orgs — only show if orgs exist */}
+          {orgs.length > 0 && (
+            <button className="w-full border-2 border-dashed border-gray-200 rounded-xl py-3 text-sm font-medium text-gray-400 hover:border-[#5b2bce] hover:text-[#5b2bce] transition-colors">
+              + More Organizations
+            </button>
+          )}
         </div>
 
         {/* Security note */}
