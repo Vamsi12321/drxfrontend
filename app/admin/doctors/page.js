@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { get, put, post as apiPost, upload } from "@/lib/api";
+import RegisterDoctorModal from "@/components/RegisterDoctorModal";
 
 export default function DoctorsPage() {
   const queryClient = useQueryClient();
@@ -106,50 +107,10 @@ export default function DoctorsPage() {
 
       {/* Register Doctor Modal */}
       {showRegister && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-bold mb-4" style={{ color: "#3b3a8a" }}>Register New Doctor</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                <input type="text" placeholder="Dr. Full Name" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input type="email" placeholder="doctor@email.com" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                <input type="tel" placeholder="+91 XXXXX XXXXX" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Specialization</label>
-                <select className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100">
-                  <option>Cardiologist</option><option>Neurologist</option><option>Oncologist</option><option>Endocrinologist</option><option>Pulmonologist</option><option>Dermatologist</option><option>Orthopedic</option><option>General Physician</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                <input type="text" placeholder="Mumbai" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Hospital</label>
-                <input type="text" placeholder="Hospital name" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Medical Reg. No.</label>
-                <input type="text" placeholder="MCI-XX-XXXXX" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-100" />
-              </div>
-              <div className="col-span-2 bg-purple-50 rounded-xl p-3 border border-purple-100">
-                <p className="text-xs text-purple-700 font-medium">Note: When a pharma company adds this doctor, they will receive a notification to accept/reject the link.</p>
-              </div>
-            </div>
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowRegister(false)} className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50">Cancel</button>
-              <button onClick={() => setShowRegister(false)} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl text-sm font-bold">Register Doctor</button>
-            </div>
-          </div>
-        </div>
+        <RegisterDoctorModal
+          onClose={() => { setShowRegister(false); queryClient.invalidateQueries({ queryKey: ["admin-doctors-list"] }); }}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ["admin-doctors-list"] })}
+        />
       )}
       {/* Edit Doctor Modal */}
       {editDoctor && (
