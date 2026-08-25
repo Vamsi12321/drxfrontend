@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 export default function Login() {
@@ -10,7 +10,119 @@ export default function Login() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
+  const [signInMethod, setSignInMethod] = useState("password");
 
+  // Email OTP state
+  const [otpEmail, setOtpEmail] = useState("");
+  const [emailOtpSent, setEmailOtpSent] = useState(false);
+  const [emailChallengeId, setEmailChallengeId] = useState("");
+  const [emailOtpCode, setEmailOtpCode] = useState("");
+  const [emailCountdown, setEmailCountdown] = useState(0);
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailVerifying, setEmailVerifying] = useState(false);
+  const emailTimerRef = useRef(null);
+
+  // Phone OTP state
+  const [otpPhone, setOtpPhone] = useState("");
+
+  // Countdown timer for email OTP
+  useEffect(() => {
+    if (emailCountdown > 0) {
+      emailTimerRef.current = setTimeout(() => setEmailCountdown(emailCountdown - 1), 1000);
+    }
+    return () => clearTimeout(emailTimerRef.current);
+  }, [emailCountdown]);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
+  // Send Email OTP
+  const handleSendEmailOtp = async () => {
+    setError("");
+    if (!otpEmail) { setError("Please enter your email address"); return; }
+    setEmailSending(true);
+
+    try {
+      const res = await fetch("/drx/api/v1/proxzar-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ Identifier: otpEmail, Channel: "email" }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        const msg = data?.detail?.[0]?.msg || data?.detail || "Failed to send OTP. Please try again.";
+        setError(typeof msg === "string" ? msg : JSON.stringify(msg));
+        setEmailSending(false);
+        return;
+      }
+
+      setEmailChallengeId(data.challengeId);
+      setEmailOtpSent(true);
+      setEmailCountdown(data.expiresIn || 600);
+      setEmailSending(false);
+    } catch {
+      setError("Unable to connect to server. Please try again.");
+      setEmailSending(false);
+    }
+  };
+
+  // Verify Email OTP (get token)
+  const handleVerifyEmailOtp = async () => {
+    setError("");
+    if (!emailOtpCode || emailOtpCode.length < 4) { setError("Please enter the OTP sent to your email"); return; }
+    setEmailVerifying(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("grant_type", "otp");
+      formData.append("challenge_id", emailChallengeId);
+      formData.append("otp", emailOtpCode);
+      formData.append("additional_claims", JSON.stringify({ role: "DOCTOR" }));
+
+      const res = await fetch("/drx/api/v1/proxzar-token", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        const msg = data?.detail?.[0]?.msg || data?.detail || "Invalid OTP. Please try again.";
+        setError(typeof msg === "string" ? msg : JSON.stringify(msg));
+        setEmailVerifying(false);
+        return;
+      }
+
+      // Store token
+      const token = data.accessToken || data.access_token;
+      localStorage.setItem("access_token", token);
+      localStorage.setItem("token_type", data.tokenType || "bearer");
+      localStorage.setItem("userRole", "doctor");
+      localStorage.setItem("userName", otpEmail);
+
+      document.cookie = `access_token=${token}; path=/; max-age=3600; SameSite=Lax`;
+      document.cookie = `userRole=doctor; path=/; max-age=3600; SameSite=Lax`;
+
+      setLoginSuccess(true);
+      setTimeout(() => router.push("/doctor/select-org"), 1500);
+    } catch {
+      setError("Unable to connect to server. Please try again.");
+      setEmailVerifying(false);
+    }
+  };
+
+  // Resend Email OTP
+  const handleResendEmailOtp = () => {
+    setEmailOtpCode("");
+    handleSendEmailOtp();
+  };
+
+  // Password login
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -38,14 +150,12 @@ export default function Login() {
         return;
       }
 
-      // Store token
       const token = data.accessToken || data.access_token;
       localStorage.setItem("access_token", token);
       localStorage.setItem("token_type", data.tokenType || "bearer");
       localStorage.setItem("userRole", "doctor");
       localStorage.setItem("userName", username);
 
-      // Set cookies for middleware
       document.cookie = `access_token=${token}; path=/; max-age=3600; SameSite=Lax`;
       document.cookie = `userRole=doctor; path=/; max-age=3600; SameSite=Lax`;
 
@@ -125,18 +235,18 @@ export default function Login() {
       </div>
 
       {/* Right Panel — Login Form */}
-      <div className="w-full lg:w-[52%] flex items-center justify-center p-6 sm:p-8 xl:p-12 bg-white overflow-y-auto max-h-screen">
-        <div className="w-full max-w-[400px]">
+      <div className="w-full lg:w-[52%] flex items-center justify-center p-3 sm:p-5 xl:p-8 bg-white overflow-y-auto max-h-screen">
+        <div className="w-full max-w-[680px]">
           {/* Logo for mobile */}
-          <div className="lg:hidden flex items-center justify-center mb-8">
+          <div className="lg:hidden flex items-center justify-center mb-6">
             <div className="w-10 h-10 bg-[#5b2bce] rounded-lg flex items-center justify-center">
               <span className="text-white font-black text-sm">DRX</span>
             </div>
           </div>
 
           {/* Heading */}
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">Welcome back, Doctor</h2>
-          <p className="text-gray-500 text-sm mb-7">Sign in with your Proxzar account</p>
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-0.5">Welcome back, Doctor</h2>
+          <p className="text-gray-500 text-[11px] sm:text-xs mb-4 sm:mb-5">Sign in with your Proxzar account</p>
 
           {/* Error */}
           {error && (
@@ -145,65 +255,214 @@ export default function Login() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            {/* Username */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Username or Email</label>
-              <div className="relative">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter username or email"
-                  autoComplete="username"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 text-sm bg-white transition-all outline-none"
-                />
+          {/* Sign-in methods */}
+          <div className="flex flex-col lg:flex-row gap-3 sm:gap-4">
+            {/* Left column — Sign-in method tabs + password form */}
+            <div className="flex-1 border border-gray-200 rounded-2xl p-3 sm:p-4">
+              <p className="text-[10px] sm:text-[11px] font-semibold text-gray-500 mb-2">Choose a sign-in method</p>
+              <div className="flex gap-1.5 mb-3 sm:mb-4">
+                {[
+                  { id: "password", label: "Username & Password", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> },
+                  { id: "emailOtp", label: "Email OTP", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> },
+                  { id: "phoneOtp", label: "Phone OTP", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg> },
+                ].map((m) => (
+                  <button key={m.id} type="button" onClick={() => { setSignInMethod(m.id); setError(""); }}
+                    className={`flex flex-col items-center gap-0.5 px-2 sm:px-3 py-2 rounded-xl border-2 text-[9px] sm:text-[10px] font-semibold transition-all flex-1 ${signInMethod === m.id ? "border-[#5b2bce] text-[#5b2bce] bg-purple-50" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}>
+                    {m.icon}
+                    <span className="leading-tight text-center">{m.label}</span>
+                  </button>
+                ))}
               </div>
-            </div>
 
-            {/* Password */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Password</label>
-              <div className="relative">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  autoComplete="current-password"
-                  className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 text-sm bg-white transition-all outline-none"
-                />
-                <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs font-medium">
-                  {showPassword ? "Hide" : "Show"}
-                </button>
-              </div>
-            </div>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-[#5b2bce] hover:bg-[#4318d1] text-white py-3.5 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
-            >
-              {isLoading ? (
-                <>
-                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  <img src="/drx/images/icons/proxzaricon.png" alt="" className="w-4 h-4 object-contain" />
-                  Sign in with Proxzar
-                </>
+              {/* Password form */}
+              {signInMethod === "password" && (
+                <form onSubmit={handleLogin} className="space-y-3">
+                  <div>
+                    <label className="block text-[10px] sm:text-[11px] font-semibold text-gray-700 mb-1">Username or Email</label>
+                    <div className="relative">
+                      <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                      <input type="text" value={username} onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Enter username or email" autoComplete="username"
+                        className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 text-xs outline-none" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] sm:text-[11px] font-semibold text-gray-700 mb-1">Password</label>
+                    <div className="relative">
+                      <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                      <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter your password" autoComplete="current-password"
+                        className="w-full pl-9 pr-11 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 text-xs outline-none" />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-[10px] font-medium">
+                        {showPassword ? "Hide" : "Show"}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end">
+                    <a href="/drx/forgot-password" className="text-[10px] sm:text-[11px] text-[#5b2bce] font-semibold hover:underline">Forgot password?</a>
+                  </div>
+                  <button type="submit" disabled={isLoading}
+                    className="w-full bg-[#5b2bce] hover:bg-[#4318d1] text-white py-2.5 rounded-xl font-semibold shadow-lg transition-all disabled:opacity-60 flex items-center justify-center gap-2 text-xs">
+                    {isLoading ? (
+                      <><svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Signing in...</>
+                    ) : (
+                      <><img src="/drx/images/icons/proxzaricon.png" alt="" className="w-3.5 h-3.5" /> Sign in</>
+                    )}
+                  </button>
+                </form>
               )}
-            </button>
-          </form>
+
+              {/* Email OTP — mobile only (inside left column) */}
+              {signInMethod === "emailOtp" && (
+                <div className="space-y-3 lg:hidden">
+                  {!emailOtpSent ? (
+                    <>
+                      <p className="text-[11px] text-gray-600">Enter your email to receive a one-time password.</p>
+                      <div className="relative">
+                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                        <input type="email" value={otpEmail} onChange={(e) => setOtpEmail(e.target.value)}
+                          placeholder="Enter your email address" className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-200" />
+                      </div>
+                      <button type="button" onClick={handleSendEmailOtp} disabled={emailSending}
+                        className="w-full bg-[#5b2bce] hover:bg-[#4318d1] text-white py-2.5 rounded-xl font-semibold text-xs transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+                        {emailSending ? (
+                          <><svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Sending...</>
+                        ) : "Send OTP"}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="bg-green-50 border border-green-200 rounded-xl px-3 py-2 text-[11px] text-green-700 font-medium">
+                        OTP sent to {otpEmail}
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-semibold text-gray-700 mb-1">Enter OTP</label>
+                        <input type="text" value={emailOtpCode} onChange={(e) => setEmailOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                          placeholder="Enter 6-digit OTP" maxLength={6}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-200 tracking-widest text-center font-mono" />
+                      </div>
+                      {emailCountdown > 0 && (
+                        <p className="text-[10px] text-gray-500 text-center">Expires in <span className="font-semibold text-[#5b2bce]">{formatTime(emailCountdown)}</span></p>
+                      )}
+                      <button type="button" onClick={handleVerifyEmailOtp} disabled={emailVerifying}
+                        className="w-full bg-[#5b2bce] hover:bg-[#4318d1] text-white py-2.5 rounded-xl font-semibold text-xs transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+                        {emailVerifying ? (
+                          <><svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Verifying...</>
+                        ) : "Verify & Sign in"}
+                      </button>
+                      {emailCountdown === 0 && (
+                        <button type="button" onClick={handleResendEmailOtp} disabled={emailSending}
+                          className="w-full border-2 border-[#5b2bce] text-[#5b2bce] hover:bg-purple-50 py-2 rounded-xl font-semibold text-xs transition-all disabled:opacity-60">
+                          {emailSending ? "Sending..." : "Resend OTP"}
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Phone OTP — mobile only (Coming Soon) */}
+              {signInMethod === "phoneOtp" && (
+                <div className="space-y-3 lg:hidden">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px] rounded-xl z-10 flex items-center justify-center">
+                      <span className="bg-gray-800 text-white text-[10px] font-bold px-3 py-1 rounded-full">Coming Soon</span>
+                    </div>
+                    <div className="opacity-50 pointer-events-none space-y-3">
+                      <p className="text-[11px] text-gray-600">Enter your phone number to receive a one-time password.</p>
+                      <div className="flex gap-1.5">
+                        <div className="flex items-center gap-0.5 px-2 py-2 border border-gray-200 rounded-xl text-[10px] text-gray-600 bg-gray-50 flex-shrink-0">🇮🇳 +91</div>
+                        <input type="tel" disabled placeholder="Enter mobile number" className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-xs outline-none bg-gray-50" />
+                      </div>
+                      <button type="button" disabled className="w-full bg-gray-300 text-white py-2.5 rounded-xl font-semibold text-xs">Send OTP</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sign up link */}
+              <div className="mt-3 pt-3 border-t border-gray-100 text-center">
+                <p className="text-[10px] sm:text-[11px] text-gray-500">New to Proxzar&apos;s DRX platform? <a href="https://drx.proxzar.ai/dobo/qr-register" target="_blank" rel="noopener noreferrer" className="text-[#5b2bce] font-semibold hover:underline">Sign up</a></p>
+              </div>
+            </div>
+
+            {/* Right column — Email OTP (desktop only, shown when emailOtp selected) */}
+            {signInMethod === "emailOtp" && (
+              <div className="flex-1 border border-gray-200 rounded-2xl p-4 hidden lg:flex flex-col items-center justify-center text-center">
+                <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <svg className="w-5 h-5 text-[#5b2bce]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                </div>
+
+                {!emailOtpSent ? (
+                  <>
+                    <h4 className="text-xs font-bold text-gray-900 mb-0.5">Sign in with Email OTP</h4>
+                    <p className="text-[10px] text-gray-500 mb-3">We&apos;ll send a one-time password to your email.</p>
+                    <div className="relative w-full mb-2">
+                      <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                      <input type="email" value={otpEmail} onChange={(e) => setOtpEmail(e.target.value)}
+                        placeholder="Enter your email address" className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-200" />
+                    </div>
+                    <button type="button" onClick={handleSendEmailOtp} disabled={emailSending}
+                      className="w-full bg-[#5b2bce] hover:bg-[#4318d1] text-white py-2 rounded-xl font-semibold text-xs transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+                      {emailSending ? (
+                        <><svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Sending...</>
+                      ) : "Send OTP"}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <h4 className="text-xs font-bold text-gray-900 mb-0.5">Verify OTP</h4>
+                    <div className="bg-green-50 border border-green-200 rounded-xl px-3 py-1.5 text-[10px] text-green-700 font-medium mb-2 w-full">
+                      OTP sent to {otpEmail}
+                    </div>
+                    <div className="w-full mb-2">
+                      <input type="text" value={emailOtpCode} onChange={(e) => setEmailOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        placeholder="Enter 6-digit OTP" maxLength={6}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-200 tracking-widest text-center font-mono" />
+                    </div>
+                    {emailCountdown > 0 && (
+                      <p className="text-[10px] text-gray-500 mb-2">Expires in <span className="font-semibold text-[#5b2bce]">{formatTime(emailCountdown)}</span></p>
+                    )}
+                    <button type="button" onClick={handleVerifyEmailOtp} disabled={emailVerifying}
+                      className="w-full bg-[#5b2bce] hover:bg-[#4318d1] text-white py-2 rounded-xl font-semibold text-xs transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+                      {emailVerifying ? (
+                        <><svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Verifying...</>
+                      ) : "Verify & Sign in"}
+                    </button>
+                    {emailCountdown === 0 && (
+                      <button type="button" onClick={handleResendEmailOtp} disabled={emailSending}
+                        className="w-full border-2 border-[#5b2bce] text-[#5b2bce] hover:bg-purple-50 py-2 rounded-xl font-semibold text-xs transition-all mt-2 disabled:opacity-60">
+                        {emailSending ? "Sending..." : "Resend OTP"}
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Right column — Phone OTP (desktop only, Coming Soon) */}
+            {signInMethod === "phoneOtp" && (
+              <div className="flex-1 border border-gray-200 rounded-2xl p-4 hidden lg:flex flex-col items-center justify-center text-center relative">
+                <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px] rounded-2xl z-10 flex items-center justify-center">
+                  <span className="bg-gray-800 text-white text-[10px] font-bold px-3 py-1 rounded-full">Coming Soon</span>
+                </div>
+                <div className="opacity-50 pointer-events-none">
+                  <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <svg className="w-5 h-5 text-[#5b2bce]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                  </div>
+                  <h4 className="text-xs font-bold text-gray-900 mb-0.5">Sign in with Phone OTP</h4>
+                  <p className="text-[10px] text-gray-500 mb-3">We&apos;ll send a one-time password to your mobile.</p>
+                  <div className="flex gap-1.5 w-full mb-2">
+                    <div className="flex items-center gap-0.5 px-2 py-2 border border-gray-200 rounded-xl text-[10px] text-gray-600 bg-gray-50 flex-shrink-0">🇮🇳 +91</div>
+                    <input type="tel" disabled placeholder="Enter mobile number"
+                      className="flex-1 px-2 py-2 border border-gray-200 rounded-xl text-xs outline-none bg-gray-50" />
+                  </div>
+                  <button type="button" disabled className="w-full bg-gray-300 text-white py-2 rounded-xl font-semibold text-xs">Send OTP</button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Footer */}
           <div className="mt-6 flex items-center justify-center gap-1 text-xs text-gray-400">

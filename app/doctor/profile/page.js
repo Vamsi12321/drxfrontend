@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { get, put } from "@/lib/api";
+import { get, put, post as apiPost } from "@/lib/api";
 import ChangePasswordSection from "@/components/ChangePasswordSection";
 
 export default function DoctorProfile() {
@@ -29,6 +29,32 @@ export default function DoctorProfile() {
     staleTime: 10 * 60 * 1000,
   });
   const specializations = specializationsData?.specializations || (Array.isArray(specializationsData) ? specializationsData : []);
+
+  // Pending org requests
+  const { data: requestsData } = useQuery({
+    queryKey: ["doctor-pending-requests"],
+    queryFn: () => get("/api/v1/doctor-requests/pending"),
+    staleTime: 60000,
+  });
+  const pendingRequests = requestsData?.requests || [];
+
+  const acceptMutation = useMutation({
+    mutationFn: (requestId) => apiPost(`/api/v1/doctor-requests/${requestId}/accept`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["doctor-pending-requests"] });
+      setSuccess("Request accepted! Awaiting admin approval.");
+      setTimeout(() => setSuccess(""), 3000);
+    },
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: (requestId) => apiPost(`/api/v1/doctor-requests/${requestId}/reject`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["doctor-pending-requests"] });
+      setSuccess("Request rejected.");
+      setTimeout(() => setSuccess(""), 3000);
+    },
+  });
 
   const updateMutation = useMutation({
     mutationFn: (data) => {
@@ -73,17 +99,17 @@ export default function DoctorProfile() {
   const location = profile?.location || [profile?.city, profile?.state, profile?.country].filter(Boolean).join(", ");
 
   if (isLoading) return (
-    <div className="space-y-4 animate-pulse">
+    <div className="space-y-4 animate-pulse px-3 sm:px-0">
       <div className="h-48 bg-gray-100 rounded-2xl" />
-      <div className="grid grid-cols-3 gap-4">
-        {[1,2,3].map((i) => <div key={i} className="h-28 bg-gray-100 rounded-2xl" />)}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[1,2,3,4].map((i) => <div key={i} className="h-20 bg-gray-100 rounded-2xl" />)}
       </div>
       <div className="h-48 bg-gray-100 rounded-2xl" />
     </div>
   );
 
   return (
-    <div className="space-y-5 max-w-5xl">
+    <div className="space-y-5 max-w-5xl px-3 sm:px-0">
       {/* Success Toast */}
       {success && (
         <div className="fixed top-5 right-5 z-50 bg-green-600 text-white px-4 py-3 rounded-xl shadow-xl font-semibold text-sm flex items-center gap-2">
@@ -98,7 +124,7 @@ export default function DoctorProfile() {
         <div className="h-28 w-full" style={{ background: "linear-gradient(135deg, #4318d1 0%, #5b2bce 40%, #7c3aed 100%)" }} />
 
         {/* Profile row */}
-        <div className="bg-white px-6 pb-6">
+        <div className="bg-white px-4 sm:px-6 pb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-12">
             {/* Avatar */}
             <div className="relative flex-shrink-0">
@@ -219,8 +245,8 @@ export default function DoctorProfile() {
             </h3>
             <div className="space-y-3">
               {[
-                { label: "Email",      verified: profile?.is_email_verified,  value: profile?.email },
-                { label: "Phone",      verified: profile?.is_phone_verified,  value: profile?.phone },
+                { label: "Email",      verified: true,                         value: profile?.email },
+                { label: "Phone",      verified: true,                         value: profile?.phone },
                 { label: "Account",    verified: profile?.is_active,          value: profile?.is_active ? "Active" : "Inactive" },
               ].map((item) => (
                 <div key={item.label} className="flex items-center justify-between">
@@ -270,6 +296,54 @@ export default function DoctorProfile() {
               </div>
             ) : (
               <p className="text-xs text-gray-400 text-center py-4">No organizations linked yet</p>
+            )}
+          </div>
+
+          {/* Pending Org Requests */}
+          <div className="bg-white rounded-2xl border border-orange-100 shadow-sm p-5">
+            <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="w-1 h-4 bg-orange-500 rounded-full inline-block" />
+              Organization Requests
+              {pendingRequests.length > 0 && (
+                <span className="ml-auto text-[10px] bg-orange-50 text-orange-600 border border-orange-100 px-2 py-0.5 rounded-full font-bold">
+                  {pendingRequests.length} pending
+                </span>
+              )}
+            </h3>
+            {pendingRequests.length > 0 ? (
+              <div className="space-y-3">
+                {pendingRequests.map((req) => (
+                  <div key={req.id} className="border border-orange-100 rounded-xl p-3 bg-orange-50/30">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-800">{req.organization_name || "Unknown Org"}</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">Requested by: {req.requested_by || "—"}</p>
+                      </div>
+                      <span className="px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-orange-100 text-orange-600">PENDING</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <button onClick={() => acceptMutation.mutate(req.id)}
+                        disabled={acceptMutation.isPending || rejectMutation.isPending}
+                        className="flex-1 px-2 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-[10px] font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        Accept
+                      </button>
+                      <button onClick={() => { if (confirm("Reject this request?")) rejectMutation.mutate(req.id); }}
+                        disabled={acceptMutation.isPending || rejectMutation.isPending}
+                        className="flex-1 px-2 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-[10px] font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <p className="text-[9px] text-gray-400 mt-3 text-center">Accepting sends to DRX admin for final approval</p>
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <svg className="w-8 h-8 text-gray-200 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <p className="text-xs text-gray-400">No pending requests</p>
+              </div>
             )}
           </div>
         </div>
