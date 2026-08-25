@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { id: "requests", label: "Requests", href: "/admin/requests", icon: "inbox" },
   { id: "doctor-activity", label: "Doctor Activity", href: "/admin/doctor-activity", icon: "activity" },
   { id: "integrations", label: "Integrations", href: "/admin/integrations", icon: "plug" },
+  { id: "onboarding", label: "Onboarding", href: "/admin/onboarding", icon: "upload" },
   { id: "logs", label: "Platform Logs", href: "/admin/logs", icon: "clock" },
 ];
 
@@ -23,6 +24,7 @@ const icons = {
   clock: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
   activity: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
   plug: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
+  upload: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>,
 };
 
 export default function AdminLayout({ children }) {
@@ -44,6 +46,7 @@ export default function AdminLayout({ children }) {
     if (pathname.includes("/doctor-org-links")) return "links";
     if (pathname.includes("/doctor-activity")) return "doctor-activity";
     if (pathname.includes("/integrations")) return "integrations";
+    if (pathname.includes("/onboarding")) return "onboarding";
     if (pathname.includes("/requests")) return "requests";
     if (pathname.includes("/logs")) return "logs";
     return "dashboard";
