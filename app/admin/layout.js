@@ -90,9 +90,6 @@ export default function AdminLayout({ children }) {
                 }`}>
                   <span className={`flex-shrink-0 ${isActive ? "text-white" : "text-gray-400"}`}>{icons[item.icon]}</span>
                   {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
-                  {!collapsed && item.id === "requests" && (
-                    <span className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/20 text-white" : "bg-red-100 text-red-600"}`}>3</span>
-                  )}
                 </div>
               </Link>
             );

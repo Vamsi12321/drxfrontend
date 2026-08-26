@@ -278,11 +278,11 @@ export default function Login() {
               {signInMethod === "password" && (
                 <form onSubmit={handleLogin} className="space-y-3">
                   <div>
-                    <label className="block text-[10px] sm:text-[11px] font-semibold text-gray-700 mb-1">Username or Email</label>
+                    <label className="block text-[10px] sm:text-[11px] font-semibold text-gray-700 mb-1">Username</label>
                     <div className="relative">
                       <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                       <input type="text" value={username} onChange={(e) => setUsername(e.target.value)}
-                        placeholder="Enter username or email" autoComplete="username"
+                        placeholder="Enter username" autoComplete="username"
                         className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 text-xs outline-none" />
                     </div>
                   </div>
@@ -307,7 +307,7 @@ export default function Login() {
                     {isLoading ? (
                       <><svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Signing in...</>
                     ) : (
-                      <><img src="/drx/images/icons/proxzaricon.png" alt="" className="w-3.5 h-3.5" /> Sign in</>
+                      <><img src="/drx/images/icons/proxzarIcon.png" alt="" className="w-3.5 h-3.5 object-contain" /> Sign in to access your portal</>
                     )}
                   </button>
                 </form>
@@ -317,22 +317,22 @@ export default function Login() {
               {signInMethod === "emailOtp" && (
                 <div className="space-y-3 lg:hidden">
                   {!emailOtpSent ? (
-                    <>
+                    <form onSubmit={(e) => { e.preventDefault(); handleSendEmailOtp(); }} className="space-y-3">
                       <p className="text-[11px] text-gray-600">Enter your email to receive a one-time password.</p>
                       <div className="relative">
                         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                         <input type="email" value={otpEmail} onChange={(e) => setOtpEmail(e.target.value)}
                           placeholder="Enter your email address" className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-200" />
                       </div>
-                      <button type="button" onClick={handleSendEmailOtp} disabled={emailSending}
+                      <button type="submit" disabled={emailSending}
                         className="w-full bg-[#5b2bce] hover:bg-[#4318d1] text-white py-2.5 rounded-xl font-semibold text-xs transition-all disabled:opacity-60 flex items-center justify-center gap-2">
                         {emailSending ? (
                           <><svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Sending...</>
                         ) : "Send OTP"}
                       </button>
-                    </>
+                    </form>
                   ) : (
-                    <>
+                    <form onSubmit={(e) => { e.preventDefault(); handleVerifyEmailOtp(); }} className="space-y-3">
                       <div className="bg-green-50 border border-green-200 rounded-xl px-3 py-2 text-[11px] text-green-700 font-medium">
                         OTP sent to {otpEmail}
                       </div>
@@ -345,7 +345,7 @@ export default function Login() {
                       {emailCountdown > 0 && (
                         <p className="text-[10px] text-gray-500 text-center">Expires in <span className="font-semibold text-[#5b2bce]">{formatTime(emailCountdown)}</span></p>
                       )}
-                      <button type="button" onClick={handleVerifyEmailOtp} disabled={emailVerifying}
+                      <button type="submit" disabled={emailVerifying}
                         className="w-full bg-[#5b2bce] hover:bg-[#4318d1] text-white py-2.5 rounded-xl font-semibold text-xs transition-all disabled:opacity-60 flex items-center justify-center gap-2">
                         {emailVerifying ? (
                           <><svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Verifying...</>
@@ -357,7 +357,7 @@ export default function Login() {
                           {emailSending ? "Sending..." : "Resend OTP"}
                         </button>
                       )}
-                    </>
+                    </form>
                   )}
                 </div>
               )}
@@ -395,24 +395,24 @@ export default function Login() {
                 </div>
 
                 {!emailOtpSent ? (
-                  <>
-                    <h4 className="text-xs font-bold text-gray-900 mb-0.5">Sign in with Email OTP</h4>
-                    <p className="text-[10px] text-gray-500 mb-3">We&apos;ll send a one-time password to your email.</p>
+                  <form onSubmit={(e) => { e.preventDefault(); handleSendEmailOtp(); }} className="w-full">
+                    <h4 className="text-xs font-bold text-gray-900 mb-0.5 text-center">Sign in with Email OTP</h4>
+                    <p className="text-[10px] text-gray-500 mb-3 text-center">We&apos;ll send a one-time password to your email.</p>
                     <div className="relative w-full mb-2">
                       <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                       <input type="email" value={otpEmail} onChange={(e) => setOtpEmail(e.target.value)}
                         placeholder="Enter your email address" className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-200" />
                     </div>
-                    <button type="button" onClick={handleSendEmailOtp} disabled={emailSending}
+                    <button type="submit" disabled={emailSending}
                       className="w-full bg-[#5b2bce] hover:bg-[#4318d1] text-white py-2 rounded-xl font-semibold text-xs transition-all disabled:opacity-60 flex items-center justify-center gap-2">
                       {emailSending ? (
                         <><svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Sending...</>
                       ) : "Send OTP"}
                     </button>
-                  </>
+                  </form>
                 ) : (
-                  <>
-                    <h4 className="text-xs font-bold text-gray-900 mb-0.5">Verify OTP</h4>
+                  <form onSubmit={(e) => { e.preventDefault(); handleVerifyEmailOtp(); }} className="w-full">
+                    <h4 className="text-xs font-bold text-gray-900 mb-0.5 text-center">Verify OTP</h4>
                     <div className="bg-green-50 border border-green-200 rounded-xl px-3 py-1.5 text-[10px] text-green-700 font-medium mb-2 w-full">
                       OTP sent to {otpEmail}
                     </div>
@@ -422,9 +422,9 @@ export default function Login() {
                         className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-200 tracking-widest text-center font-mono" />
                     </div>
                     {emailCountdown > 0 && (
-                      <p className="text-[10px] text-gray-500 mb-2">Expires in <span className="font-semibold text-[#5b2bce]">{formatTime(emailCountdown)}</span></p>
+                      <p className="text-[10px] text-gray-500 mb-2 text-center">Expires in <span className="font-semibold text-[#5b2bce]">{formatTime(emailCountdown)}</span></p>
                     )}
-                    <button type="button" onClick={handleVerifyEmailOtp} disabled={emailVerifying}
+                    <button type="submit" disabled={emailVerifying}
                       className="w-full bg-[#5b2bce] hover:bg-[#4318d1] text-white py-2 rounded-xl font-semibold text-xs transition-all disabled:opacity-60 flex items-center justify-center gap-2">
                       {emailVerifying ? (
                         <><svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Verifying...</>
@@ -436,7 +436,7 @@ export default function Login() {
                         {emailSending ? "Sending..." : "Resend OTP"}
                       </button>
                     )}
-                  </>
+                  </form>
                 )}
               </div>
             )}
