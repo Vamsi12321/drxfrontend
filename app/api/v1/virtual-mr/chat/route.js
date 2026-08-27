@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 const BACKEND = process.env.BACKEND_URL;
 
-// Virtual MR uses Groq AI which can take 10-30s — needs a longer timeout
+// Virtual MR AI answers can take 10-30s — needs a longer timeout
 export const maxDuration = 60; // seconds (Next.js route config)
 
 export async function POST(req) {

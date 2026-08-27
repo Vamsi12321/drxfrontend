@@ -144,8 +144,13 @@ export default function Login() {
       const data = await res.json();
 
       if (!res.ok) {
-        const msg = data?.detail?.[0]?.msg || data?.detail || "Login failed. Please check your credentials.";
-        setError(typeof msg === "string" ? msg : JSON.stringify(msg));
+        let msg = data?.detail?.[0]?.msg || data?.detail || "Login failed. Please check your credentials.";
+        if (typeof msg !== "string") msg = JSON.stringify(msg);
+        // Friendlier message for auth failures from Proxzar
+        if (/authenticat|bearer token|invalid credential|incorrect/i.test(msg)) {
+          msg = "Invalid username or password. Please try again.";
+        }
+        setError(msg);
         setIsLoading(false);
         return;
       }
@@ -235,7 +240,7 @@ export default function Login() {
       </div>
 
       {/* Right Panel — Login Form */}
-      <div className="w-full lg:w-[52%] flex items-center justify-center p-3 sm:p-5 xl:p-8 bg-white overflow-y-auto max-h-screen">
+      <div className="w-full lg:w-[52%] flex items-center justify-center p-3 sm:p-5 xl:p-8 bg-white">
         <div className="w-full max-w-[680px]">
           {/* Logo for mobile */}
           <div className="lg:hidden flex items-center justify-center mb-6">

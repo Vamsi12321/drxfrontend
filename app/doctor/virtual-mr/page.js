@@ -223,7 +223,7 @@ export default function VirtualMRPage() {
                         Hi Dr. {userName}! I'm ready to answer your questions about <span className="font-bold text-[#5b2bce] capitalize">{drugName}</span>.
                         {moa ? ` I have access to the drug's clinical data and official brochure.` : ""}
                       </p>
-                      <p className="text-[9px] text-purple-400 mt-1">Powered by Grok AI · Answers grounded in drug data</p>
+                      <p className="text-[9px] text-purple-400 mt-1">AI-powered · Answers grounded in drug data</p>
                     </div>
                   </div>
                 )}

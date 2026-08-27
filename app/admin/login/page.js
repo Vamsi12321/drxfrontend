@@ -61,8 +61,12 @@ export default function AdminLoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        const msg = data?.detail?.[0]?.msg || data?.detail || "Login failed. Please check credentials.";
-        setError(typeof msg === "string" ? msg : JSON.stringify(msg));
+        let msg = data?.detail?.[0]?.msg || data?.detail || "Login failed. Please check credentials.";
+        if (typeof msg !== "string") msg = JSON.stringify(msg);
+        if (/authenticat|bearer token|invalid credential|incorrect/i.test(msg)) {
+          msg = "Invalid username or password. Please try again.";
+        }
+        setError(msg);
         setLoading(false);
         return;
       }

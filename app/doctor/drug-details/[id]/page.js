@@ -418,7 +418,7 @@ export default function DrugDetailsPage() {
                 }
               </button>
             </div>
-            <p className="text-[9px] text-gray-300 text-center pb-2">Powered by Grok AI · Verify clinically.</p>
+            <p className="text-[9px] text-gray-300 text-center pb-2">AI-generated · Verify clinically.</p>
           </div>
 
           {/* Quick Actions */}
