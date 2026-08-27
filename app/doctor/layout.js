@@ -196,7 +196,7 @@ export default function DoctorLayout({ children }) {
             </button>
             <div>
               <p className="text-[11px] text-gray-400 leading-tight">Welcome back,</p>
-              <h1 className="text-sm font-bold text-[#3b3a8a] leading-tight">Dr. {userName} <span className="text-sm">🩺</span> <span className="text-gray-400 font-normal text-[10px]">&#x25BE;</span></h1>
+              <h1 className="text-sm font-bold text-[#3b3a8a] leading-tight">Dr. {userName} <span className="text-sm">🩺</span></h1>
               <p className="text-[10px] text-gray-400 leading-tight hidden sm:block">Cardiologist</p>
             </div>
           </div>
@@ -305,10 +305,9 @@ export default function DoctorLayout({ children }) {
               )}
             </div>
             {/* Profile avatar */}
-            <div className="flex items-center gap-2 cursor-pointer">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push("/doctor/profile")}>
               <img src="/drx/images/doctors/male_doc_avatar.png" alt="" className="w-9 h-9 rounded-full object-cover" />
               <span className="text-xs font-semibold text-gray-700 hidden md:inline">Dr. {userName}</span>
-              <svg className="w-3 h-3 text-gray-400 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </div>
           </div>
         </div>

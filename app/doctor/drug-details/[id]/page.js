@@ -1,8 +1,10 @@
 ﻿"use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { get, post, del } from "@/lib/api";
+import { useVirtualMR } from "@/lib/useVirtualMR";
+import MarkdownMessage from "@/components/MarkdownMessage";
 import { HiOutlineArrowLeft, HiOutlineBookmark, HiBookmark } from "react-icons/hi";
 
 const FORM_ICONS = {
@@ -39,12 +41,19 @@ export default function DrugDetailsPage() {
   const { id } = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const chatEndRef = useRef(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [chatInput, setChatInput] = useState("");
-  const [chatMessages, setChatMessages] = useState([]);
   const [toast, setToast] = useState("");
   const [userName] = useState(typeof window !== "undefined" ? localStorage.getItem("userName") || "Doctor" : "Doctor");
   const [orgId] = useState(typeof window !== "undefined" ? localStorage.getItem("selectedOrgId") || null : null);
+
+  const { messages: chatMessages, isTyping: chatTyping, sendMessage: sendVMR } = useVirtualMR({
+    drugId: id,
+    orgId,
+  });
+
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatMessages, chatTyping]);
 
   // Fetch drug detail
   const { data: drug, isLoading, isFetching } = useQuery({
@@ -125,11 +134,8 @@ export default function DrugDetailsPage() {
   const handleChat = (msg) => {
     const text = msg || chatInput.trim();
     if (!text) return;
-    setChatMessages((p) => [...p, { role: "user", text }]);
     setChatInput("");
-    setTimeout(() => {
-      setChatMessages((p) => [...p, { role: "ai", text: `Based on ${drug?.drug_name || "this drug"}: ${drug?.mechanism_of_action || "I can help with dosage, interactions, and more."}`.slice(0, 200) }]);
-    }, 800);
+    sendVMR(text);
   };
 
   if (isLoading && !drug) return (<div className="space-y-4">{[1,2,3].map((i) => <div key={i} className="h-32 bg-white rounded-xl animate-pulse border border-gray-100" />)}</div>);
@@ -325,20 +331,94 @@ export default function DrugDetailsPage() {
           <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-sm font-bold text-gray-900">Virtual MR</h3>
-              <span className="flex items-center gap-1 text-[10px] text-green-500 font-medium"><span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span> Online</span>
+              <span className="flex items-center gap-1 text-[10px] text-green-500 font-medium">
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Online
+              </span>
             </div>
-            <div className="p-3 space-y-2.5 max-h-[250px] overflow-y-auto">
-              <div className="flex items-start gap-2"><div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0"><img src="/drx/images/doctors/Virtual_mr_ai.png" alt="" className="w-6 h-6 object-cover" /></div><div className="bg-gray-50 rounded-lg rounded-tl-none px-3 py-2 max-w-[90%]"><p className="text-[11px] text-gray-700 leading-relaxed">Hi Dr. {userName} 👋<br/>How can I help you with <span className="text-[#5b2bce] font-semibold capitalize">{name}</span>?</p></div></div>
-              {chatMessages.map((msg, idx) => (<div key={idx} className={`flex items-start gap-2 ${msg.role === "user" ? "justify-end" : ""}`}>{msg.role === "ai" && <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0"><img src="/drx/images/doctors/Virtual_mr_ai.png" alt="" className="w-6 h-6 object-cover" /></div>}<div className={`rounded-lg px-3 py-2 max-w-[85%] ${msg.role === "user" ? "bg-[#5b2bce] text-white rounded-tr-none" : "bg-gray-50 text-gray-700 rounded-tl-none"}`}><p className="text-[11px] leading-relaxed">{msg.text}</p></div></div>))}
+            <div className="p-3 space-y-2.5 max-h-[300px] overflow-y-auto">
+              {/* Welcome */}
+              <div className="flex items-start gap-2">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#5b2bce] to-[#7c3aed] flex items-center justify-center flex-shrink-0">
+                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2c-1.66 0-3 1.34-3 3s1.34 3 3 3v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4c1.66 0 3-1.34 3-3s-1.34-3-3-3z"/></svg>
+                </div>
+                <div className="bg-gradient-to-br from-[#f5f3ff] to-[#ede9fe] border border-purple-100 rounded-lg rounded-tl-none px-3 py-2 max-w-[90%]">
+                  <p className="text-[11px] text-[#2D2A6A] leading-relaxed">Hi Dr. {userName} 👋<br/>Ask me anything about <span className="text-[#5b2bce] font-bold capitalize">{name}</span>.</p>
+                </div>
+              </div>
+
+              {/* Messages */}
+              {chatMessages.map((msg, idx) => (
+                <div key={idx} className={`flex items-start gap-2 ${msg.role === "user" ? "justify-end" : ""}`}>
+                  {msg.role === "ai" && (
+                    <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center ${msg.isError ? "bg-red-100" : "bg-gradient-to-br from-[#5b2bce] to-[#7c3aed]"}`}>
+                      <svg className={`w-3 h-3 ${msg.isError ? "text-red-500" : "text-white"}`} fill="currentColor" viewBox="0 0 24 24"><path d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2c-1.66 0-3 1.34-3 3s1.34 3 3 3v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4c1.66 0 3-1.34 3-3s-1.34-3-3-3z"/></svg>
+                    </div>
+                  )}
+                  <div className={`rounded-lg px-3 py-2 max-w-[85%] ${
+                    msg.role === "user"
+                      ? "bg-[#5b2bce] text-white rounded-tr-none text-[11px] leading-relaxed"
+                      : msg.isError
+                      ? "bg-red-50 text-red-600 border border-red-100 rounded-tl-none text-[11px] leading-relaxed"
+                      : "bg-gradient-to-br from-[#f5f3ff] to-[#ede9fe] border border-purple-100 rounded-tl-none"
+                  }`}>
+                    {msg.role === "user" || msg.isError
+                      ? msg.text
+                      : <MarkdownMessage content={msg.text} />
+                    }
+                    {msg.usedBrochure && (
+                      <span className="block mt-1 text-[8px] text-green-500 font-semibold">📄 Brochure used</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {/* Typing indicator */}
+              {chatTyping && (
+                <div className="flex items-start gap-2">
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#5b2bce] to-[#7c3aed] flex items-center justify-center flex-shrink-0">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2c-1.66 0-3 1.34-3 3s1.34 3 3 3v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4c1.66 0 3-1.34 3-3s-1.34-3-3-3z"/></svg>
+                  </div>
+                  <div className="bg-gradient-to-br from-[#f5f3ff] to-[#ede9fe] border border-purple-100 rounded-lg rounded-tl-none px-3 py-2">
+                    <div className="flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 bg-[#5b2bce] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-1.5 h-1.5 bg-[#5b2bce] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-1.5 h-1.5 bg-[#5b2bce] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={chatEndRef} />
             </div>
-            <div className="px-3 pb-2 flex flex-col gap-1.5">
-              {["Dosage info?", "Side effects?", "Interactions?", "Contraindications?"].map((q) => (<button key={q} onClick={() => handleChat(q)} className="text-left text-[10px] text-gray-600 bg-gray-50 hover:bg-indigo-50 hover:text-[#5b2bce] px-3 py-1.5 rounded-lg border border-gray-100 font-medium transition-colors">{q}</button>))}
-            </div>
+
+            {/* Quick questions */}
+            {chatMessages.length === 0 && (
+              <div className="px-3 pb-2 flex flex-col gap-1.5">
+                {["Dosage info?", "Side effects?", "Interactions?", "Contraindications?"].map((q) => (
+                  <button key={q} onClick={() => handleChat(q)} disabled={chatTyping}
+                    className="text-left text-[10px] text-gray-600 bg-gray-50 hover:bg-indigo-50 hover:text-[#5b2bce] px-3 py-1.5 rounded-lg border border-gray-100 font-medium transition-colors disabled:opacity-50">
+                    {q}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Input */}
             <div className="border-t border-gray-100 px-3 py-2 flex gap-2">
-              <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleChat(); }} placeholder="Ask anything..." className="flex-1 border border-gray-200 rounded-lg px-2.5 py-1.5 text-[11px] outline-none focus:ring-1 focus:ring-[#5b2bce]" />
-              <button onClick={() => handleChat()} className="bg-[#5b2bce] text-white w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[#4318d1]"><svg width="12" height="12" fill="white" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+              <input type="text" value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !chatTyping) handleChat(); }}
+                disabled={chatTyping}
+                placeholder="Ask anything..."
+                className="flex-1 border border-gray-200 rounded-lg px-2.5 py-1.5 text-[11px] outline-none focus:ring-1 focus:ring-[#5b2bce] disabled:bg-gray-50" />
+              <button onClick={() => handleChat()} disabled={chatTyping || !chatInput.trim()}
+                className="bg-[#5b2bce] text-white w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[#4318d1] disabled:opacity-40 transition-colors flex-shrink-0">
+                {chatTyping
+                  ? <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                  : <svg width="12" height="12" fill="white" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                }
+              </button>
             </div>
-            <p className="text-[9px] text-gray-300 text-center pb-2">AI-generated. Verify clinically.</p>
+            <p className="text-[9px] text-gray-300 text-center pb-2">Powered by Grok AI · Verify clinically.</p>
           </div>
 
           {/* Quick Actions */}
