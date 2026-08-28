@@ -170,7 +170,7 @@ export default function DoctorHome() {
                   </div>
                   <div className="flex items-center gap-1.5">
                     {org.has_mrx && (
-                      <span className="text-[8px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded-full font-bold">MRX</span>
+                      <span className="text-[8px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded-full font-bold">MRx</span>
                     )}
                     <span className="text-[9px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full font-bold">Active</span>
                   </div>

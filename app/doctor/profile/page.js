@@ -288,7 +288,7 @@ export default function DoctorProfile() {
                       <p className="text-[10px] text-gray-400">{org.city || "Pharma"}</p>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
-                      {org.has_mrx && <span className="text-[8px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded-full font-bold">MRX</span>}
+                      {org.has_mrx && <span className="text-[8px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded-full font-bold">MRx</span>}
                       <span className="text-[8px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded-full font-bold">Active</span>
                     </div>
                   </div>
