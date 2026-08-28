@@ -31,6 +31,10 @@ const SHOWN_FIELDS = new Set([
   "has_brochure", "storage_conditions", "storage_temperature",
   "adult_dosage", "pediatric_dosage", "renal_dose_adjustment", "hepatic_dose_adjustment",
   "missed_dose_instructions",
+  // Internal/backend fields — hide from UI
+  "brochure_text", "brochure_extracted_at", "brochure_extraction_status",
+  "brochure_extraction_error", "sync_status", "sync_error", "org_id",
+  "organization_id", "mrx_drug_id", "last_synced_at",
 ]);
 
 const formatKey = (key) => key?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) || "";
