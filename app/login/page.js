@@ -205,16 +205,16 @@ export default function Login() {
         </div>
 
         <div className="relative z-10">
-          <h2 className="text-[2rem] font-bold text-white leading-tight mb-3">
-            One Platform to<br />Access All Orgs
+          <h2 className="text-[1.4rem] font-bold text-white leading-tight mb-2">
+            One Platform to<br />Access All Pharma Companies
           </h2>
-          <div className="w-10 h-1 bg-white/40 rounded-full mb-4" />
-          <p className="text-indigo-200 text-sm leading-relaxed max-w-[320px] mb-6">
-            Discover medicines, attend CME events, connect with peers, and access all your organizations — one platform, endless possibilities.
+          <div className="w-8 h-1 bg-white/40 rounded-full mb-2" />
+          <p className="text-indigo-200 text-sm leading-relaxed max-w-[300px] mb-5">
+            Discover medicines, attend CME events, connect with peers, and access all your pharma companies — one platform, endless possibilities.
           </p>
 
           {/* Feature list */}
-          <div className="space-y-3.5">
+          <div className="space-y-3">
             {[
               { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>, title: "Smart Drug Discovery", desc: "AI search across thousands of medicines" },
               { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>, title: "CME & Events", desc: "Stay updated with medical conferences & webinars" },
@@ -222,7 +222,7 @@ export default function Login() {
               { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>, title: "Clinical Insights", desc: "AI-powered insights for better decisions" },
             ].map((f) => (
               <div key={f.title} className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center text-white flex-shrink-0">
                   {f.icon}
                 </div>
                 <div>
