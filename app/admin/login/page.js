@@ -159,7 +159,7 @@ export default function AdminLoginPage() {
         <div className="relative z-10">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 bg-white/15 backdrop-blur rounded-xl flex items-center justify-center border border-white/20">
-              <span className="text-white font-bold text-lg">DRX</span>
+              <span className="text-white font-bold text-lg">DRx</span>
             </div>
             <div>
               <p className="text-white font-bold text-lg">Admin Portal</p>
@@ -195,7 +195,7 @@ export default function AdminLoginPage() {
         </div>
 
         <div className="relative z-10">
-          <p className="text-purple-300 text-[11px]">DRX Platform v1.0 · Secure Admin Access</p>
+          <p className="text-purple-300 text-[11px]">DRx Platform v1.0 · Secure Admin Access</p>
         </div>
       </div>
 
@@ -205,7 +205,7 @@ export default function AdminLoginPage() {
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-6">
             <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-              <span className="text-white font-bold text-lg">DRX</span>
+              <span className="text-white font-bold text-lg">DRx</span>
             </div>
             <h1 className="text-xl font-bold" style={{ color: "#3b3a8a" }}>Admin Portal</h1>
           </div>

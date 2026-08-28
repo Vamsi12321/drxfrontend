@@ -337,7 +337,7 @@ export default function DoctorProfile() {
                     </div>
                   </div>
                 ))}
-                <p className="text-[9px] text-gray-400 mt-3 text-center">Accepting sends to DRX admin for final approval</p>
+                <p className="text-[9px] text-gray-400 mt-3 text-center">Accepting sends to DRx admin for final approval</p>
               </div>
             ) : (
               <div className="text-center py-4">

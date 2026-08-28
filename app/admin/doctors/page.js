@@ -37,7 +37,7 @@ export default function DoctorsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: "#3b3a8a" }}>Doctors</h1>
-          <p className="text-gray-500 text-sm mt-0.5">All registered doctors on the DRX platform</p>
+          <p className="text-gray-500 text-sm mt-0.5">All registered doctors on the DRx platform</p>
         </div>
         <button onClick={() => setShowRegister(true)}
           className="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-semibold transition-all flex items-center gap-2">

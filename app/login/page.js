@@ -188,9 +188,9 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="h-screen flex overflow-hidden">
       {/* Left Panel */}
-      <div className="hidden lg:flex lg:w-[48%] bg-gradient-to-br from-[#4318d1] via-[#5b2bce] to-[#7c3aed] flex-col justify-between p-10 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-[48%] bg-gradient-to-br from-[#4318d1] via-[#5b2bce] to-[#7c3aed] flex-col justify-between p-7 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-10 w-32 h-32 bg-white/5 rounded-full" />
           <div className="absolute bottom-32 right-10 w-48 h-48 bg-white/5 rounded-full" />
@@ -199,22 +199,22 @@ export default function Login() {
 
         <div className="relative z-10">
           <h1 className="text-4xl font-black tracking-tight">
-            <span className="text-white">DR</span><span className="text-cyan-300">X</span>
+            <span className="text-white">DR</span><span className="text-cyan-300">x</span>
           </h1>
           <p className="text-indigo-300 text-xs font-semibold tracking-widest mt-1">AI PLATFORM</p>
         </div>
 
         <div className="relative z-10">
-          <h2 className="text-3xl font-bold text-white leading-tight mb-3">
+          <h2 className="text-[2rem] font-bold text-white leading-tight mb-3">
             One Platform to<br />Access All Orgs
           </h2>
           <div className="w-10 h-1 bg-white/40 rounded-full mb-4" />
-          <p className="text-indigo-200 text-sm leading-relaxed max-w-[320px] mb-8">
+          <p className="text-indigo-200 text-sm leading-relaxed max-w-[320px] mb-6">
             Discover medicines, attend CME events, connect with peers, and access all your organizations — one platform, endless possibilities.
           </p>
 
           {/* Feature list */}
-          <div className="space-y-4">
+          <div className="space-y-3.5">
             {[
               { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>, title: "Smart Drug Discovery", desc: "AI search across thousands of medicines" },
               { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>, title: "CME & Events", desc: "Stay updated with medical conferences & webinars" },
@@ -234,34 +234,45 @@ export default function Login() {
           </div>
         </div>
 
+        <div className="relative z-10">
+          <p className="text-indigo-400 text-[10px]">DRx Platform · Secure Doctor Access</p>
+        </div>
+
         <div className="absolute inset-0 flex items-center justify-end pointer-events-none pr-4">
-          <img src="/drx/images/doctors/dr_login.png" alt="" className="h-[75%] object-contain" />
+          <img src="/drx/images/doctors/dr_login.png" alt="" className="h-[72%] object-contain" />
         </div>
       </div>
 
       {/* Right Panel — Login Form */}
-      <div className="w-full lg:w-[52%] flex items-center justify-center p-3 sm:p-5 xl:p-8 bg-white">
-        <div className="w-full max-w-[680px]">
+      <div className="w-full lg:w-[52%] flex items-center justify-center p-3 sm:p-5 bg-white overflow-y-auto">
+        <div className="w-full max-w-[560px]">
+          {/* Proxzar branding — top right */}
+          <div className="flex items-center justify-end gap-2 mb-3">
+            <span className="text-[11px] text-gray-400 font-medium">A product of</span>
+            <div className="w-px h-5 bg-gray-300 mx-1" />
+            <img src="/drx/images/proxzar/proxzarmainlogo.png" alt="Proxzar" className="h-8 object-contain" />
+          </div>
+
           {/* Logo for mobile */}
-          <div className="lg:hidden flex items-center justify-center mb-6">
-            <div className="w-10 h-10 bg-[#5b2bce] rounded-lg flex items-center justify-center">
-              <span className="text-white font-black text-sm">DRX</span>
+          <div className="lg:hidden flex items-center justify-center mb-4">
+            <div className="w-10 h-10 bg-[#5b2bce] rounded-xl flex items-center justify-center">
+              <span className="text-white font-black text-sm">DRx</span>
             </div>
           </div>
 
           {/* Heading */}
-          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-0.5">Welcome back, Doctor</h2>
-          <p className="text-gray-500 text-[11px] sm:text-xs mb-4 sm:mb-5">Sign in with your Proxzar account</p>
+          <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-0.5">Welcome back, Doctor</h2>
+          <p className="text-gray-500 text-[10px] sm:text-[11px] mb-3">Sign in with your Proxzar account</p>
 
           {/* Error */}
           {error && (
-            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-3 py-2.5 rounded-xl text-xs font-medium flex items-center gap-2">
+            <div className="mb-3 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-xl text-[11px] font-medium flex items-center gap-2">
               <span>⚠️</span> {error}
             </div>
           )}
 
           {/* Sign-in methods */}
-          <div className="flex flex-col lg:flex-row gap-3 sm:gap-4">
+          <div className="flex flex-col lg:flex-row gap-2 sm:gap-3">
             {/* Left column — Sign-in method tabs + password form */}
             <div className="flex-1 border border-gray-200 rounded-2xl p-3 sm:p-4">
               <p className="text-[10px] sm:text-[11px] font-semibold text-gray-500 mb-2">Choose a sign-in method</p>
@@ -388,7 +399,7 @@ export default function Login() {
 
               {/* Sign up link */}
               <div className="mt-3 pt-3 border-t border-gray-100 text-center">
-                <p className="text-[10px] sm:text-[11px] text-gray-500">New to Proxzar&apos;s DRX platform? <a href="https://drx.proxzar.ai/dobo/qr-register" target="_blank" rel="noopener noreferrer" className="text-[#5b2bce] font-semibold hover:underline">Sign up</a></p>
+                <p className="text-[10px] sm:text-[11px] text-gray-500">New to Proxzar&apos;s DRx platform? <a href="https://drx.proxzar.ai/dobo/qr-register" target="_blank" rel="noopener noreferrer" className="text-[#5b2bce] font-semibold hover:underline">Sign up</a></p>
               </div>
             </div>
 
@@ -470,8 +481,8 @@ export default function Login() {
           </div>
 
           {/* Footer */}
-          <div className="mt-6 flex items-center justify-center gap-1 text-xs text-gray-400">
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+          <div className="mt-3 flex items-center justify-center gap-1 text-[10px] text-gray-400">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
             Secured by Proxzar Authentication
           </div>
         </div>

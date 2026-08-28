@@ -41,7 +41,7 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold" style={{ color: "#3b3a8a" }}>Dashboard</h1>
-        <p className="text-gray-500 text-sm mt-0.5">DRX Platform Overview</p>
+        <p className="text-gray-500 text-sm mt-0.5">DRx Platform Overview</p>
       </div>
 
       {/* Stats */}

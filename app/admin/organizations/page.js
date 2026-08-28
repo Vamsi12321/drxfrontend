@@ -155,7 +155,7 @@ export default function OrganizationsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: "#3b3a8a" }}>Organizations</h1>
-          <p className="text-gray-500 text-sm mt-0.5">Manage pharmaceutical companies on the DRX platform</p>
+          <p className="text-gray-500 text-sm mt-0.5">Manage pharmaceutical companies on the DRx platform</p>
         </div>
         <button onClick={() => setShowAdd(true)}
           className="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-semibold transition-all flex items-center gap-2">
@@ -264,7 +264,7 @@ export default function OrganizationsPage() {
             ) : (
               <>
                 <h3 className="text-lg font-bold mb-1" style={{ color: "#3b3a8a" }}>Add Organization</h3>
-                <p className="text-sm text-gray-500 mb-5">Register a new pharmaceutical company on the DRX platform.</p>
+                <p className="text-sm text-gray-500 mb-5">Register a new pharmaceutical company on the DRx platform.</p>
 
                 {formError && (
                   <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2.5 rounded-xl text-sm mb-4">{formError}</div>

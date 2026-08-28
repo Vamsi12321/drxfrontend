@@ -123,13 +123,19 @@ export default function SelectOrgPage() {
         {/* Logo */}
         <div className="text-center mb-5">
           <h1 className="text-3xl font-extrabold tracking-tighter inline-block" style={{ fontFamily: "'Arial Black', sans-serif" }}>
-            <span className="text-white bg-[#5b2bce] px-2 py-0.5 rounded-lg text-xl">DR</span><span style={{ background: "linear-gradient(180deg, #38bdf8 0%, #06b6d4 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }} className="text-xl font-black">X</span>
+            <span className="text-white bg-[#5b2bce] px-2 py-0.5 rounded-lg text-xl">DR</span><span style={{ background: "linear-gradient(180deg, #38bdf8 0%, #06b6d4 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }} className="text-xl font-black">x</span>
           </h1>
         </div>
 
-        {/* Welcome */}
-        <div className="text-center mb-6">
+        {/* Welcome + Logout */}
+        <div className="flex items-center justify-center gap-3 mb-6">
           <p className="text-sm text-gray-500">Welcome back, <span className="font-semibold text-[#3b3a8a]">Dr. {userName}</span></p>
+          <button onClick={() => { localStorage.clear(); document.cookie = "access_token=; path=/; max-age=0"; document.cookie = "userRole=; path=/; max-age=0"; window.location.href = "/drx/login"; }}
+            title="Logout"
+            className="flex items-center gap-1 text-[10px] text-red-400 hover:text-red-600 hover:bg-red-50 px-2 py-1 rounded-lg transition-all border border-red-100">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            Logout
+          </button>
         </div>
 
         {/* Two-column layout: Orgs left/center, Requests right */}
@@ -148,7 +154,7 @@ export default function SelectOrgPage() {
               ) : orgs.length === 0 ? (
                 <div className="col-span-2 text-center py-8">
                   <p className="text-gray-500 text-sm font-medium">No organizations linked yet.</p>
-                  <p className="text-xs text-gray-400 mt-1">Please contact your DRX admin to get linked to an organization.</p>
+                  <p className="text-xs text-gray-400 mt-1">Please contact your DRx admin to get linked to an organization.</p>
                   <button onClick={() => { localStorage.clear(); document.cookie = "access_token=; path=/; max-age=0"; document.cookie = "userRole=; path=/; max-age=0"; window.location.href = "/drx/login"; }}
                     className="mt-5 px-6 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-sm font-semibold transition-all">
                     Logout
@@ -230,7 +236,7 @@ export default function SelectOrgPage() {
                 ))}
               </div>
 
-              <p className="text-[9px] text-gray-400 mt-3 text-center">Accepting sends to DRX admin for final approval</p>
+              <p className="text-[9px] text-gray-400 mt-3 text-center">Accepting sends to DRx admin for final approval</p>
             </div>
           )}
         </div>

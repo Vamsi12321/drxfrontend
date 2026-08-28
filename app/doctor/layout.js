@@ -109,9 +109,16 @@ export default function DoctorLayout({ children }) {
   const SidebarContent = () => (
     <>
       {/* Logo */}
-      <div className="px-3 pt-5 pb-4 flex items-center justify-center">
-        <Link href="/doctor/home" className="flex items-center justify-center overflow-hidden">
-          <img src="/drx/images/doctors/drx_icon.png" alt="DRX" className={`${collapsed && !mobileOpen ? "h-7" : "h-10"} object-contain transition-all`} />
+      <div className="px-3 pt-5 pb-4 flex items-center justify-start pl-4">
+        <Link href="/doctor/home" className="flex items-center gap-0.5 overflow-hidden">
+          {(!collapsed || mobileOpen) && (
+            <img src="/drx/images/icons/proxzarIcon.png" alt="Proxzar" className="h-10 w-10 object-contain transition-all flex-shrink-0" />
+          )}
+          {collapsed && !mobileOpen ? (
+            <span className="text-lg font-black tracking-tight"><span style={{color:"#3b3a8a"}}>DR</span><span style={{color:"#06b6d4"}}>x</span></span>
+          ) : (
+            <span className="text-2xl font-black tracking-tight"><span style={{color:"#3b3a8a"}}>DR</span><span style={{color:"#06b6d4"}}>x</span></span>
+          )}
         </Link>
       </div>
 

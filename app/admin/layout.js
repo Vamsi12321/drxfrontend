@@ -68,11 +68,11 @@ export default function AdminLayout({ children }) {
         <div className={`${collapsed ? "px-3" : "px-5"} pt-5 pb-4 border-b border-gray-100`}>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-sm">DRX</span>
+              <span className="text-white font-bold text-sm">DRx</span>
             </div>
             {!collapsed && (
               <div>
-                <p className="font-bold text-sm" style={{ color: "#3b3a8a" }}>DRX Admin</p>
+                <p className="font-bold text-sm" style={{ color: "#3b3a8a" }}>DRx Admin</p>
                 <p className="text-[10px] text-gray-400">Platform Management</p>
               </div>
             )}
@@ -135,7 +135,7 @@ export default function AdminLayout({ children }) {
           </button>
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 bg-purple-600 rounded flex items-center justify-center">
-              <span className="text-white font-bold text-[9px]">DRX</span>
+              <span className="text-white font-bold text-[9px]">DRx</span>
             </div>
             <span className="text-sm font-bold" style={{ color: "#3b3a8a" }}>Admin</span>
           </div>
