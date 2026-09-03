@@ -59,7 +59,7 @@ export default function DoctorProfile() {
 
   const updateMutation = useMutation({
     mutationFn: (data) => {
-      const allowed = ["name", "phone", "specialization", "hospital", "license_number",
+      const allowed = ["name", "specialization", "hospital", "license_number",
         "experience_years", "qualification", "bio", "avatar_url", "location", "city", "state", "country"];
       const clean = {};
       allowed.forEach((key) => {
@@ -80,7 +80,7 @@ export default function DoctorProfile() {
 
   const startEdit = () => {
     setForm({
-      name: profile?.name || "", phone: profile?.phone || "",
+      name: profile?.name || "",
       bio: profile?.bio || "", location: profile?.location || "",
       city: profile?.city || "", state: profile?.state || "",
       country: profile?.country || "India",
@@ -217,7 +217,6 @@ export default function DoctorProfile() {
           <div className="space-y-3">
             {[
               { icon: "📧", label: "Email",          value: profile?.email },
-              { icon: "📱", label: "Phone",          value: profile?.phone },
               { icon: "🩺", label: "Specialization", value: profile?.specialization },
               { icon: "🏥", label: "Hospital",       value: profile?.hospital },
               { icon: "🎓", label: "Qualification",  value: profile?.qualification },
@@ -247,7 +246,6 @@ export default function DoctorProfile() {
             <div className="space-y-3">
               {[
                 { label: "Email",      verified: true,                         value: profile?.email },
-                { label: "Phone",      verified: true,                         value: profile?.phone },
                 { label: "Account",    verified: profile?.is_active,          value: profile?.is_active ? "Active" : "Inactive" },
               ].map((item) => (
                 <div key={item.label} className="flex items-center justify-between">
@@ -384,7 +382,6 @@ export default function DoctorProfile() {
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { key: "name",  label: "Full Name", span: 2 },
-                  { key: "phone", label: "Phone",      type: "tel" },
                   { key: "avatar_url", label: "Avatar URL", type: "text" },
                 ].map((f) => (
                   <div key={f.key} className={f.span === 2 ? "col-span-2" : ""}>
