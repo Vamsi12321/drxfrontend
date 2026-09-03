@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { get, put, post as apiPost } from "@/lib/api";
 import ChangePasswordSection from "@/components/ChangePasswordSection";
+import DoctorLocations from "@/components/DoctorLocations";
 
 export default function DoctorProfile() {
   const queryClient = useQueryClient();
@@ -348,6 +349,9 @@ export default function DoctorProfile() {
           </div>
         </div>
       </div>
+
+      {/* ── My Practice Locations ── */}
+      <DoctorLocations />
 
       {/* ── Change Password ── */}
       <ChangePasswordSection accentColor="indigo" />
