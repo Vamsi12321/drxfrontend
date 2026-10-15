@@ -25,6 +25,8 @@ export default function DoctorDrugSearch() {
   const dropdownRef = useRef(null);
 
   const orgId = typeof window !== "undefined" ? localStorage.getItem("selectedOrgId") : null;
+  const [companyName, setCompanyName] = useState("");
+  useEffect(() => { setCompanyName(localStorage.getItem("companyName") || ""); }, []);
 
   const { data, isLoading, error: fetchError } = useQuery({
     queryKey: ["drugs-public", orgId, search],
@@ -139,21 +141,48 @@ export default function DoctorDrugSearch() {
 
   return (
     <div className="space-y-5" ref={dropdownRef}>
-      {/* Page Header */}
-      <div>
-        <h1 className="text-xl font-bold text-gray-900">Drug Search</h1>
-        <p className="text-sm text-gray-500">Search for medicines, indications, dosage, and more</p>
+      {/* ═══ Org-branded Hero Banner ═══ */}
+      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-[#f0edfd] via-white to-[#eef4ff] border border-purple-100">
+        <div className="absolute inset-0 opacity-[0.07] pointer-events-none">
+          <div className="absolute -top-10 -right-10 w-56 h-56 bg-[#5b2bce] rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-1/3 w-40 h-40 bg-blue-400 rounded-full blur-3xl" />
+        </div>
+        <div className="relative z-10 px-6 py-6 sm:py-7">
+          <p className="text-[11px] font-semibold text-gray-400 tracking-wide mb-1">Innovation for a healthier tomorrow</p>
+          <h1 className="text-2xl sm:text-3xl font-black text-gray-900">
+            {companyName || "Organization"} <span className="text-[#5b2bce]">Medicines</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-gray-500 mt-2 max-w-[560px] leading-relaxed">
+            Explore {companyName || "your organization"}&apos;s trusted portfolio of medicines, therapies and prescribing information — empowering better patient outcomes.
+          </p>
+          <div className="flex flex-wrap gap-2 mt-4">
+            {[
+              { label: "Trusted Science", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /> },
+              { label: "Better Health Outcomes", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /> },
+              { label: "Global Expertise", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z M3.6 9h16.8M3.6 15h16.8M12 3a15 15 0 010 18" /> },
+            ].map((b) => (
+              <span key={b.label} className="inline-flex items-center gap-1.5 bg-white/80 border border-purple-100 text-[#5b2bce] text-[10px] font-semibold px-2.5 py-1 rounded-full">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">{b.icon}</svg>
+                {b.label}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="flex items-center gap-2">
-        <div className="flex-1 relative">
+      {/* ═══ Search Bar with button + catalog badge ═══ */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex-1 min-w-[240px] relative">
           <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search for medicines, indications, dosage..."
+            placeholder="Search medicines by name..."
             className="w-full pl-12 pr-10 py-3.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition-all bg-white" />
           {search && <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"><HiOutlineX className="w-4 h-4" /></button>}
         </div>
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-green-600 flex-shrink-0">
+          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+          {companyName || "Org"} Product Catalog Only
+        </span>
       </div>
 
       {/* Dynamic Filter Chips */}
@@ -177,7 +206,7 @@ export default function DoctorDrugSearch() {
           {/* Results bar */}
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-gray-500">
-              Found <span className="font-bold text-[#5b2bce]">{filtered.length}</span> results{search && <> for "<span className="font-semibold text-gray-700">{search}</span>"</>}
+              <span className="font-bold text-[#5b2bce]">{filtered.length}</span> {companyName || "organization"} medicines{search && <> for &quot;<span className="font-semibold text-gray-700">{search}</span>&quot;</>}
               {activeFilterCount > 0 && <span className="text-xs text-gray-400 ml-1">({activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""} active)</span>}
             </p>
             <div className="flex items-center gap-3">
@@ -230,94 +259,62 @@ export default function DoctorDrugSearch() {
           )}
         </div>
 
-        {/* Right Sidebar — Refine Results */}
-        <aside className="w-[200px] flex-shrink-0 hidden lg:block">
+        {/* Right Sidebar — Browse by Therapy Area + About */}
+        <aside className="w-[220px] flex-shrink-0 hidden lg:block space-y-4">
+          {/* Browse by Therapy Area (categories) */}
           <div className="bg-white rounded-xl border border-gray-100 p-4 sticky top-4">
-            <h3 className="text-sm font-bold text-gray-900 mb-4">Refine Results</h3>
-
-            {/* Drug Type */}
-            {types.length > 0 && (
-              <div className="mb-4">
-                <p className="text-xs font-semibold text-gray-700 mb-2">Type</p>
-                <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                    <input type="radio" name="type" checked={filterType === "all"} onChange={() => setFilterType("all")} className="w-3.5 h-3.5 text-[#5b2bce]" />
-                    All
-                  </label>
-                  {types.map((t) => (
-                    <label key={t} className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                      <input type="radio" name="type" checked={filterType === t} onChange={() => setFilterType(t)} className="w-3.5 h-3.5 text-[#5b2bce]" />
-                      {t}
-                    </label>
-                  ))}
-                </div>
+            <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-1.5">
+              <svg className="w-4 h-4 text-[#5b2bce]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+              Browse by Therapy Area
+            </h3>
+            {categories.length > 0 ? (
+              <div className="space-y-1 max-h-[280px] overflow-y-auto">
+                <button onClick={() => setFilterCategory("all")}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors ${filterCategory === "all" ? "bg-indigo-50 text-[#5b2bce] font-semibold" : "text-gray-600 hover:bg-gray-50"}`}>
+                  <span>All Therapy Areas</span>
+                  <span className="text-[10px] text-gray-400">{drugs.length}</span>
+                </button>
+                {categories.map((c) => {
+                  const count = drugs.filter((d) => (d.therapeutic_category || d.drug_class || getVal(d, "therapeutic_category")) === c).length;
+                  return (
+                    <button key={c} onClick={() => setFilterCategory(c)}
+                      className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors text-left ${filterCategory === c ? "bg-indigo-50 text-[#5b2bce] font-semibold" : "text-gray-600 hover:bg-gray-50"}`}>
+                      <span className="truncate">{c}</span>
+                      <span className="text-[10px] text-gray-400 flex-shrink-0">{count}</span>
+                    </button>
+                  );
+                })}
               </div>
-            )}
-
-            {/* Form */}
-            {forms.length > 0 && (
-              <div className="mb-4">
-                <p className="text-xs font-semibold text-gray-700 mb-2">Form</p>
-                <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                    <input type="radio" name="form" checked={filterForm === "all"} onChange={() => setFilterForm("all")} className="w-3.5 h-3.5 text-[#5b2bce]" />
-                    All
-                  </label>
-                  {forms.map((f) => (
-                    <label key={f} className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                      <input type="radio" name="form" checked={filterForm === f} onChange={() => setFilterForm(f)} className="w-3.5 h-3.5 text-[#5b2bce]" />
-                      {f}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Category — searchable dropdown */}
-            {categories.length > 0 && (
-              <div className="mb-4">
-                <p className="text-xs font-semibold text-gray-700 mb-2">Category</p>
-                <div className="relative">
-                  <select
-                    value={filterCategory}
-                    onChange={(e) => setFilterCategory(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs bg-white outline-none focus:ring-1 focus:ring-[#5b2bce] appearance-none"
-                  >
-                    <option value="all">All Categories</option>
-                    {categories
-                      .filter((c) => !categorySearch || c.toLowerCase().includes(categorySearch.toLowerCase()))
-                      .map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                  <HiOutlineChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
-                </div>
-                {/* Category search */}
-                <input
-                  type="text"
-                  value={categorySearch}
-                  onChange={(e) => setCategorySearch(e.target.value)}
-                  placeholder="Filter categories..."
-                  className="mt-1.5 w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs bg-white outline-none focus:ring-1 focus:ring-[#5b2bce]"
-                />
-              </div>
-            )}
-
-            {/* Strength */}
-            {strengths.length > 0 && (
-              <div className="mb-4">
-                <p className="text-xs font-semibold text-gray-700 mb-2">Strength</p>
-                <select value={filterStrength} onChange={(e) => setFilterStrength(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs bg-white outline-none focus:ring-1 focus:ring-[#5b2bce]">
-                  <option value="all">All Strengths</option>
-                  {strengths.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
+            ) : (
+              <p className="text-xs text-gray-400">No therapy areas available</p>
             )}
 
             {activeFilterCount > 0 && (
-              <button onClick={clearAll} className="w-full text-xs text-[#5b2bce] hover:underline font-semibold text-center">
-                Clear All Filters
+              <button onClick={clearAll} className="w-full mt-3 pt-3 border-t border-gray-100 text-xs text-[#5b2bce] hover:underline font-semibold text-center">
+                Clear All Filters ({activeFilterCount})
               </button>
             )}
+          </div>
+
+          {/* About Org Products */}
+          <div className="bg-gradient-to-br from-[#f5f3ff] to-[#eef4ff] rounded-xl border border-purple-100 p-4">
+            <h3 className="text-xs font-bold text-gray-800 mb-2 flex items-center gap-1.5">
+              <svg className="w-4 h-4 text-[#5b2bce]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              About {companyName || "Org"} Products
+            </h3>
+            <div className="space-y-2">
+              {[
+                "Official product information",
+                "Approved indications and usage",
+                "Dosing and administration details",
+                "Safety information and resources",
+              ].map((t) => (
+                <div key={t} className="flex items-start gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#5b2bce] mt-1.5 flex-shrink-0" />
+                  <span className="text-[11px] text-gray-600 leading-snug">{t}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </aside>
       </div>

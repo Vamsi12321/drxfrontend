@@ -196,11 +196,18 @@ export default function DrugDetailsPage() {
       {/* Top bar */}
       <div className="flex items-center justify-between">
         <button onClick={() => router.back()} className="flex items-center gap-1.5 text-sm text-[#5b2bce] font-medium"><HiOutlineArrowLeft className="w-4 h-4" /> Back</button>
-        <button onClick={handleBookmarkToggle} disabled={bookmarkLoading || !orgId}
-          className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${isBookmarked ? "border-[#5b2bce] bg-indigo-50 text-[#5b2bce]" : "border-gray-200 text-gray-600 hover:bg-gray-50"} disabled:opacity-50`}>
-          {isBookmarked ? <HiBookmark className="w-4 h-4" /> : <HiOutlineBookmark className="w-4 h-4" />}
-          {isBookmarked ? "Bookmarked" : "Bookmark"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={handleBookmarkToggle} disabled={bookmarkLoading || !orgId}
+            className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${isBookmarked ? "border-[#5b2bce] bg-indigo-50 text-[#5b2bce]" : "border-gray-200 text-gray-600 hover:bg-gray-50"} disabled:opacity-50`}>
+            {isBookmarked ? <HiBookmark className="w-4 h-4" /> : <HiOutlineBookmark className="w-4 h-4" />}
+            {isBookmarked ? "Bookmarked" : "Bookmark"}
+          </button>
+          <button onClick={() => { if (drug) sessionStorage.setItem("orderDrugData", JSON.stringify(drug)); router.push(`/doctor/order/${drug?.id || drug?._id || id}`); }}
+            className="flex items-center gap-1.5 bg-[#5b2bce] hover:bg-[#4318d1] text-white rounded-lg px-4 py-1.5 text-xs font-semibold transition-colors shadow-sm">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+            Request / Order
+          </button>
+        </div>
       </div>
 
       <div className="flex gap-5 flex-col lg:flex-row">
